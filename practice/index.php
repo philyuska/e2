@@ -6,6 +6,6 @@
 </head>
 <body>
 	<h1>Practice Application</h1>
-	<img src='/e2/practice/images/db25-logo.png' alt='db25 Logo'>
+	<img src='/images/db25-logo.png' alt='db25 Logo'>
 </body>
 </html>
