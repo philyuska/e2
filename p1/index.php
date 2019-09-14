@@ -27,11 +27,6 @@
             width: 400px;
 			height: 500px; 
         }
-
-		p
-		{
-			align: justify;
-		}
 		
 	</style>
 
