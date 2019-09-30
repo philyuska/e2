@@ -4,7 +4,7 @@
 
 <head>
 
-    <title>Practice project 2</title>
+    <title>Blackjack Game Simulator</title>
     <meta charset='utf-8'>
 
     <meta name='viewport' content='width=device-width, initial-scale=1'>
