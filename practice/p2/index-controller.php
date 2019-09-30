@@ -1,6 +1,6 @@
 <?php
 
-$draw_size = 2;
+$inital_handsize = 2;
 $max_players = 2;
 $dealer = $max_players + 1;
 
@@ -9,16 +9,16 @@ $loser = '&#x3000;';
 
 $players = array();
 
-$suits = array
+$card_suits = array
 (
-	'spades' => '1F0A',
-	'hearts' => '1F0B',
-	'diamonds' => '1F0C',
-	'clubs' => '1F0D',
+	'spades' => array( 'UBlock' => '1F0A' ),
+	'hearts' => array( 'UBlock' => '1F0B' ),
+	'diamonds' => array( 'UBlock' => '1F0C' ),
+	'clubs' => array( 'UBlock' => '1F0D' ),
 );
 
 
-$card_props = array
+$card_ranks = array
 (
 	1 => array( 'name' => "Ace", 'value' => 1, 'UByte' => '1' ),
 	2 => array( 'name' => "2", 'value' => 2, 'UByte' => '2' ),
@@ -35,9 +35,9 @@ $card_props = array
 	13 => array( 'name' => "King", 'value' => 10, 'UByte' => 'E' ),
 );
 
-foreach ( $suits as $suit => $ublock_prefix )
+foreach ( $card_suits as $suit => $suit_props )
 {
-	foreach ( $card_props as $rank => $card )
+	foreach ( $card_ranks as $rank => $card )
 	{
 		$_card = array
 		(
@@ -45,131 +45,314 @@ foreach ( $suits as $suit => $ublock_prefix )
 			'value' => $card['value'],
 			'suit' => $suit,
 			'rank' => $rank,
-			'glyph' => '&#x' . $ublock_prefix . $card['UByte'] . ';',
+			'glyph' => '&#x' . $suit_props['UBlock'] . $card['UByte'] . ';',
 		);
 
 		$deck[] = $_card;
 	}
 }
 
+print "<pre>";
+
 shuffle( $deck );
 
-for ( $i = 0; $i < $draw_size; $i++ )
+for ( $i = 0; $i < $inital_handsize; $i++ )
 {
 	for ( $x = 1; $x <= $max_players + 1; $x++ )
 	{
 		if (! array_key_exists( $x, $players ) )
 		{ 
 			$players[ $x ]['name'] = ( $x == $dealer ? "Dealer" : "Player " . $x );
+			$players[ $x ]['seat'] = ( $x == $dealer ? 0 : $x );
+			$players[ $x ]['hand'] = array();
 			$players[ $x ]['total'] = 0;
-			$players[ $x ]['blackjack'] = false;			
-			$players[ $x ]['digest'] = array();
-			$players[ $x ]['outcome'] = ( $x == $dealer ? "Winner" : "Loser" );
+			$players[ $x ]['blackjack'] = FALSE;
+
+			$players[ $x ]['digest'] = array('Deal');
+			$players[ $x ]['outcome'] = ( $x == $dealer ? "" : "Loser" );
 		}
 
-		$draw_card = array_shift( $deck );
-		$players[ $x ]['hand'][] = $draw_card;
-		$players[ $x ]['total'] = $players[ $x ]['total'] + $draw_card['value'];
-		
-		
-		unset ( $draw_card );
+		draw_a_card( $x );
 	}
 }	
 
-ksort( $players );
-
-print "<pre>";
-
-$active_players = $max_players;
-
-for ( $x = 1; $x <= $max_players; $x++ )
+if ( $players[ $dealer ]['blackjack'] )
 {
-	while ( ( $players[ $x ]['total'] < 17 ) && ( $players[ $x ]['total'] <= 21 ) )
+	$players[ $dealer ]['digest'][] = "total is {$players[ $x ]['total']}, black jack";
+	
+	for ( $x = 1; $x <= $max_players; $x++ )
 	{
-		$players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, took hit";
-		draw( $x );
-	}
-
-	if ( $players[ $x ]['total'] > 21 )
-	{
-		$players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, busted";
-		$active_players--;
-	}
-	else
-	{
-		$players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, stayed";		
-	}
-}
-
-if ( $active_players )
-{
-	if ( $players[ $dealer ]['total'] < 17 )
-	{
-		while ( ( $players[ $dealer ]['total'] < 17 ) && ( $players[ $dealer ]['total'] <= 21 ) )
+		if ( $players[ $x ]['blackjack'] )
 		{
-			$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, took hit";
-			draw( $dealer );
-			
+			$players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, black jack";
 		}
-	}
-	if ( $players[ $dealer ]['total'] > 21 )
-	{
-		$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, busted";				
-	}
-
-	else
-	{
-		$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, stayed";		
 	}
 }
 else
 {
-	$players[ $dealer ]['digest'][] = "House wins, all players busted";
+	$active_players = $max_players;
+
+	for ( $x = 1; $x <= $max_players; $x++ )
+	{
+		if ( $players[ $x ]['blackjack'] )
+		{
+			$players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, black jack";
+		}
+		else
+		{
+			while ( ( $players[ $x ]['total'] <= 21 ) && ( should_draw_a_card( $x ) ) )
+			{
+				$players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, took hit";
+				draw_a_card( $x );
+			}
+
+			if ( $players[ $x ]['total'] > 21 )
+			{
+				$players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, busted";
+				$active_players--;
+			}
+			else
+			{
+				$players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, stayed";		
+			}
+		}
+	}
+
+	if ( $active_players )
+	{
+		if ( $players[ $dealer ]['total'] < 17 )
+		{
+			while ( $players[ $dealer ]['total'] < 17 )
+			{
+				$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, took hit";
+				draw_a_card( $dealer );
+			}
+		}
+		if ( $players[ $dealer ]['total'] > 21 )
+		{
+			$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, busted";				
+		}
+
+		else
+		{
+			$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, stayed";		
+		}
+
+	}
+	else
+	{
+		$players[ $dealer ]['digest'][] = "House wins, all players busted";
+	}
 }	
+
+determine_outcome();
+
+foreach ( $players as $player => $player_data )
+{
+	$seat[ $player ] = $player_data;
+}
+array_multisort( $seat, $players );
 
 // print_r( $players );
 
 print "</pre>";	
 
 
-for ( $x = 1; $x <= $max_players; $x++ )
-{
-	if ( $players[ $x ]['total'] > 21 )
-	{
-		$players[ $x ]['outcome'] = "Busted";
-	}
-	
-	if ( $players[ $x ]['total'] <= 21 )
-	{
-		if ( $players[ $dealer ]['total'] > 21 )
-		{
-			$players[ $x ]['outcome'] = "Winner";
-			$players[ $dealer ]['outcome'] = "Busted";
-		}
-		
-		if ( $players[ $x ]['total'] > $players[ $dealer ]['total'] )
-		{
-			$players[ $x ]['outcome'] = "Winner";
-			$players[ $dealer ]['outcome'] = "Loser";
-		}
-		
-		if ( $players[ $x ]['total'] == $players[ $dealer ]['total'] )
-		{
-			$players[ $x ]['outcome'] = "Push";
-			$players[ $dealer ]['outcome'] = "Push";
-		}		
-	}
-}
 
 
-function draw( $x )
+
+function draw_a_card( $x )
 {
 	global $deck, $players;
+
+	$drawn_card = array_shift( $deck );
 	
-	$draw_card = array_shift( $deck );
-	$players[ $x ]['hand'][] = $draw_card;
-		
-	$players[ $x ]['total'] = $players[ $x ]['total'] + $draw_card['value'];
-	unset ( $draw_card );		
+	$players[ $x ]['hand'][] = $drawn_card;
+	$players[ $x ]['digest'][] 	= $drawn_card['name'];
+
+	unset ( $draw_card );
+
+	apply_gamerules( $x );
 }
 
+function apply_gamerules( $x )
+{
+	global $inital_handsize, $deck, $players;
+
+	if ( count( $players[ $x ]['hand'] ) < $inital_handsize )
+	{
+		return;
+	}
+
+	$players[ $x ]['total'] = 0;
+
+	if ( count( $players[ $x ]['hand'] ) == $inital_handsize )
+	{
+		foreach ( $players[ $x ]['hand'] as $card )
+		{
+			if ( $card['rank'] <> 1 )
+			{
+				$players[ $x ]['total'] = $players[ $x ]['total'] + $card['value'];
+			}
+		}
+
+		foreach ( $players[ $x ]['hand'] as $card )
+		{
+			if ( $card['rank'] == 1 )
+			{
+				if ( $players[ $x ]['total'] == 10 )
+				{
+					$players[ $x ]['blackjack'] = TRUE;
+					$players[ $x ]['total'] = $players[ $x ]['total'] + 11;
+				}
+				else
+				{
+					if ( ( $players[ $x ]['total'] + 11 ) > 21 )
+					{
+						$players[ $x ]['total'] = $players[ $x ]['total'] + 1;
+					}
+					else
+					{
+						$players[ $x ]['total'] = $players[ $x ]['total'] + 11;
+					}
+				}
+			}
+		}		
+	}
+	
+	if ( count( $players[ $x ]['hand'] ) > $inital_handsize )
+	{
+		foreach ( $players[ $x ]['hand'] as $card )
+		{
+			if ( $card['rank'] <> 1 )
+			{
+				$players[ $x ]['total'] = $players[ $x ]['total'] + $card['value'];
+			}
+		}
+
+		foreach ( $players[ $x ]['hand'] as $card )
+		{
+			if ( $card['rank'] == 1 )
+			{
+				if ( ( $players[ $x ]['total'] + 11 ) > 21 )
+				{
+					$players[ $x ]['total'] = $players[ $x ]['total'] + 1;
+				}
+				else
+				{
+					$players[ $x ]['total'] = $players[ $x ]['total'] + 11;
+				}
+			}
+		}
+	}
+}
+
+function determine_outcome()
+{
+	global $players, $max_players, $dealer;
+
+	for ( $x = 1; $x <= $max_players; $x++ )
+	{
+		if ( $players[ $x ]['total'] > 21 )
+		{
+			$players[ $x ]['outcome'] = "Busted";
+		}
+		else
+		{
+			if ( $players[ $dealer ]['total'] <= 21 )
+			{
+				if ( $players[ $x ]['total'] < $players[ $dealer ]['total'] )
+				{			
+					$players[ $x ]['outcome'] = "Loser";
+				}
+				if ( $players[ $x ]['total'] == $players[ $dealer ]['total'] )
+				{			
+					$players[ $x ]['outcome'] = "Push";
+				}
+				if ( $players[ $x ]['total'] > $players[ $dealer ]['total'] )
+				{			
+					$players[ $x ]['outcome'] = "Winner";
+				}			
+			}
+
+			if ( $players[ $dealer ]['total'] > 21 )
+			{
+				$players[ $dealer ]['outcome'] = "Busted";
+				
+				if ( $players[ $x ]['total'] <= 21 )
+				{			
+					$players[ $x ]['outcome'] = "Winner";
+				}
+				else
+				{
+					$players[ $x ]['outcome'] = "Busted";
+				}
+			}
+		}
+	}
+}
+
+function should_draw_a_card( $x )
+{
+	global $players, $dealer;
+	
+	$strategy = array
+	(
+		'hard' => array
+		(
+			2	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			3	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			4	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			5	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			6	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			7	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			8	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			9	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			10	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			11	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			12	=> array( 1,2,3,7,8,9,10 ),
+			13	=> array( 1,7,8,9,10 ),
+			14	=> array( 1,7,8,9,10 ),
+			15	=> array( 1,7,8,9,10 ),
+			16	=> array( 1,7,8,9,10 ),
+			17	=> array(),
+			18	=> array(),
+			19	=> array(),
+			20	=> array(),
+			21	=> array(),			
+		),
+		'soft' => array
+		(
+			13	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			14	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			15	=> array( 2,3,4,5,6,7,8,9,10 ),
+			16	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			17	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			18	=> array( 1,9,10 ),
+			19	=> array(),
+			20	=> array(),
+			21	=> array(),
+		),	
+	);
+
+	if ( $players[ $dealer ]['hand'][0]['value'] == 1 )
+	{
+		if ( $players[ $x ]['total'] > 12 )
+		{
+			if ( in_array( $players[ $dealer ]['hand'][0]['value'], $strategy['soft'][ $players[ $x ]['total'] ] ) )
+			{
+				return TRUE;
+			}		
+		}
+	}
+	
+	if ( $players[ $x ]['total'] < 17 )  
+	{
+		if ( in_array( $players[ $dealer ]['hand'][0]['value'], $strategy['hard'][ $players[ $x ]['total'] ] ) )
+		{
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
