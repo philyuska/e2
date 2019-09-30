@@ -56,7 +56,6 @@
 		
 		
 ## Outside resources
-*your list of outside resources go here*
 https://www.php.net/manual/en/
 https://stackoverflow.com/questions/1597736/how-to-sort-an-array-of-associative-arrays-by-value-of-a-given-key-in-php
 https://secure.php.net/manual/en/function.array-multisort.php
@@ -66,4 +65,3 @@ https://bicyclecards.com/how-to-play/blackjack/
 https://wizardofodds.com/games/blackjack/strategy/4-decks/
 
 ## Notes for instructor
-*any notes for me to refer to while grading; if none, omit this section*
