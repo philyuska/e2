@@ -122,16 +122,15 @@ else
 				draw_a_card( $dealer );
 			}
 		}
+		
 		if ( $players[ $dealer ]['total'] > 21 )
 		{
 			$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, busted";				
 		}
-
 		else
 		{
 			$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, stayed";		
 		}
-
 	}
 	else
 	{
@@ -145,8 +144,73 @@ foreach ( $players as $player => $player_data )
 {
 	$seat[ $player ] = $player_data;
 }
+
 array_multisort( $seat, $players );
 
+function should_draw_a_card( $x )
+{
+	global $players, $dealer;
+	
+	$strategy = array
+	(
+		'hard' => array
+		(
+			2	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			3	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			4	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			5	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			6	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			7	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			8	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			9	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			10	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			11	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			12	=> array( 1,2,3,7,8,9,10 ),
+			13	=> array( 1,7,8,9,10 ),
+			14	=> array( 1,7,8,9,10 ),
+			15	=> array( 1,7,8,9,10 ),
+			16	=> array( 1,7,8,9,10 ),
+			17	=> array(),
+			18	=> array(),
+			19	=> array(),
+			20	=> array(),
+			21	=> array(),			
+		),
+		'soft' => array
+		(
+			13	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			14	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			15	=> array( 2,3,4,5,6,7,8,9,10 ),
+			16	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			17	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+			18	=> array( 1,9,10 ),
+			19	=> array(),
+			20	=> array(),
+			21	=> array(),
+		),	
+	);
+
+	if ( $players[ $dealer ]['hand'][0]['value'] == 1 )
+	{
+		if ( $players[ $x ]['total'] > 12 )
+		{
+			if ( in_array( $players[ $dealer ]['hand'][0]['value'], $strategy['soft'][ $players[ $x ]['total'] ] ) )
+			{
+				return TRUE;
+			}		
+		}
+	}
+	
+	if ( $players[ $x ]['total'] < 17 )  
+	{
+		if ( in_array( $players[ $dealer ]['hand'][0]['value'], $strategy['hard'][ $players[ $x ]['total'] ] ) )
+		{
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
 
 function draw_a_card( $x )
 {
@@ -157,7 +221,7 @@ function draw_a_card( $x )
 	$players[ $x ]['hand'][] = $drawn_card;
 	$players[ $x ]['digest'][] 	= $drawn_card['name'];
 
-	unset ( $draw_card );
+	unset ( $drawn_card );
 
 	apply_gamerules( $x );
 }
@@ -252,10 +316,12 @@ function determine_outcome()
 				{			
 					$players[ $x ]['outcome'] = "Loser";
 				}
+				
 				if ( $players[ $x ]['total'] == $players[ $dealer ]['total'] )
 				{			
 					$players[ $x ]['outcome'] = "Push";
 				}
+				
 				if ( $players[ $x ]['total'] > $players[ $dealer ]['total'] )
 				{			
 					$players[ $x ]['outcome'] = "Winner";
@@ -279,67 +345,3 @@ function determine_outcome()
 	}
 }
 
-function should_draw_a_card( $x )
-{
-	global $players, $dealer;
-	
-	$strategy = array
-	(
-		'hard' => array
-		(
-			2	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			3	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			4	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			5	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			6	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			7	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			8	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			9	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			10	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			11	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			12	=> array( 1,2,3,7,8,9,10 ),
-			13	=> array( 1,7,8,9,10 ),
-			14	=> array( 1,7,8,9,10 ),
-			15	=> array( 1,7,8,9,10 ),
-			16	=> array( 1,7,8,9,10 ),
-			17	=> array(),
-			18	=> array(),
-			19	=> array(),
-			20	=> array(),
-			21	=> array(),			
-		),
-		'soft' => array
-		(
-			13	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			14	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			15	=> array( 2,3,4,5,6,7,8,9,10 ),
-			16	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			17	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-			18	=> array( 1,9,10 ),
-			19	=> array(),
-			20	=> array(),
-			21	=> array(),
-		),	
-	);
-
-	if ( $players[ $dealer ]['hand'][0]['value'] == 1 )
-	{
-		if ( $players[ $x ]['total'] > 12 )
-		{
-			if ( in_array( $players[ $dealer ]['hand'][0]['value'], $strategy['soft'][ $players[ $x ]['total'] ] ) )
-			{
-				return TRUE;
-			}		
-		}
-	}
-	
-	if ( $players[ $x ]['total'] < 17 )  
-	{
-		if ( in_array( $players[ $dealer ]['hand'][0]['value'], $strategy['hard'][ $players[ $x ]['total'] ] ) )
-		{
-			return TRUE;
-		}
-	}
-
-	return FALSE;
-}

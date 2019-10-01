@@ -80,7 +80,7 @@
 
 <body>
 
-    <h1>Black Jack</h1>
+    <h1>Black Jack (simulation)</h1>
 
     <h2>Mechanics</h2>
     <ul>
@@ -100,8 +100,8 @@
 
 	<?php foreach ( $players as $player => $cards ) { ?>
 	<div>
-		<p><?php echo "{$players[$player]['name']} " . ( $players[$player]['blackjack'] ? 'Blackjack' : "total : " . $players[$player]['total'] ) . " {$players[$player]['outcome']}" ; ?>
-		<br />Hand digest: <?php echo join(', ', $players[$player]['digest'] ); ?></p>
+		<p><?php echo "{$players[ $player ]['name']} " . ( $players[ $player ]['blackjack'] ? 'Blackjack' : "total : " . $players[ $player ]['total'] ) . " {$players[ $player ]['outcome']}"; ?><br />
+		Hand digest: <?php echo join(', ', $players[ $player ]['digest'] ); ?></p>
 		<div class='grid-container'>
 			<?php foreach ( $cards['hand'] as $card ) { ?>
 			<div class='grid-item'>
