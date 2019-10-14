@@ -98,7 +98,7 @@ function draw_a_hole_card( $x )
 	
 	$_value = 0;
 	$_name = 'Bummer';
-	$_glyph = '&#x' . dechex( rand( hexdec("1f600"), hexdec("1f64f") ) );
+	$_glyph = '&#x' . dechex( rand( hexdec("1f600"), hexdec("1f64f") ) ) . ';';
 
 	$ur_thinking = rand( 1, 10 );
 	$im_thinking = rand( 1, 10 );
