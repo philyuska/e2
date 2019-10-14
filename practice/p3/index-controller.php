@@ -79,6 +79,7 @@ else
 			if (! array_key_exists( $x, $players ) )
 			{ 
 				$players[ $x ]['name'] = ( $x == $dealer ? "Dealer" : "Player " . $x );
+				$players[ $x ]['guest'] = ( $x == 2 ? TRUE : FALSE );
 				$players[ $x ]['seat'] = ( $x == $dealer ? 0 : $x );
 				$players[ $x ]['hand'] = array();
 				$players[ $x ]['hole'] = array();
@@ -101,12 +102,6 @@ else
 			}
 		}
 	}
-
-	for ( $x = 1; $x <= $max_players; $x++ )
-	{
-		$players[ $x ]['advise_hit'] = should_draw_a_card( $x );
-	}
-
 	if ( $players[ $dealer ]['bonus'] )
 	{
 		for ( $x = 1; $x <= $max_players; $x++ )
@@ -115,7 +110,7 @@ else
 		}
 		
 		determine_outcome();
-		$gameover = TRUE;		
+		$gameover = TRUE;
 	}
 	elseif ( $players[ $dealer ]['blackjack'] )
 	{
@@ -155,52 +150,78 @@ else
 			}			
 		}
 	}
+
+	if (! $gameover )
+	{
+		for ( $x = 1; $x <= $max_players; $x++ )
+		{
+			if (! $players[ $x ]['guest'] )
+			{
+				auto_playhand( $x );
+			}
+			else
+			{
+				$players[ $x ]['advise_hit'] = should_draw_a_card( $x );
+				break;
+			}
+		}
+	}
 	
 	$_SESSION['game'] = $game;
 	$_SESSION['deck'] = $deck;
 	$_SESSION['players'] = $players;
 }
 
-if ( $players[ $dealer ]['button'] )
+if (! $gameover )
 {
-	$players[ $dealer ]['digest'][] = "Show";
-	show_hand( $dealer );
-
-	$active_players = $max_players;
+	$x = whohas_thebutton();
 	
-	for ( $x = 1; $x <= $max_players; $x++ )
+	if ( (! $players[ $x ]['guest'] ) && ( $x < $dealer ) )
 	{
-		if ( $players[ $x ]['total'] > 21 )
-		{
-			$active_players--;
-		}
-		if ( $players[ $x ]['blackjack'] )
-		{
-			$active_players--;
-		}			
+		auto_playhand( $x );
 	}
-	
-	if ( $active_players )
+
+	if ( $players[ $dealer ]['button'] )
 	{
-		if ( $players[ $dealer ]['total'] < 17 )
+		$players[ $dealer ]['digest'][] = "Show";
+		show_hand( $dealer );
+
+		$active_players = $max_players;
+		
+		for ( $x = 1; $x <= $max_players; $x++ )
 		{
-			while ( $players[ $dealer ]['total'] < 17 )
+			if ( $players[ $x ]['total'] > 21 )
 			{
-				$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, took hit";
-				draw_a_card( $dealer );
+				$active_players--;
+			}
+			if ( $players[ $x ]['blackjack'] )
+			{
+				$active_players--;
+			}			
+		}
+		
+		if ( $active_players )
+		{
+			if ( $players[ $dealer ]['total'] < 17 )
+			{
+				while ( $players[ $dealer ]['total'] < 17 )
+				{
+					$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, took hit";
+					draw_a_card( $dealer );
+				}
+			}
+			if ( $players[ $dealer ]['total'] > 21 )
+			{
+				$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, busted";				
+			}
+
+			else
+			{
+				$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, stayed";		
 			}
 		}
-		if ( $players[ $dealer ]['total'] > 21 )
-		{
-			$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, busted";				
-		}
-
-		else
-		{
-			$players[ $dealer ]['digest'][] = "total is {$players[ $dealer ]['total']}, stayed";		
-		}
+		
+		determine_outcome();
+		$gameover = TRUE;
 	}
-	
-	determine_outcome();
-	$gameover = TRUE;
 }

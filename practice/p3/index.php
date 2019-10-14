@@ -121,6 +121,8 @@
 
 		<?php if (! $gameover ) { ?>
 		<?php $x = whohas_thebutton();?>
+		<?php if ( $players[ $x ]['guest'] ) {?>
+
 
         <input type='radio' value='hit' id='hit' name='choice' <?php if ( $players[ $x ]['advise_hit'] ) { echo 'checked'; } ?> >
         <label for='hit'> Hit</label>
@@ -132,13 +134,36 @@
 		
 		<p><em>Advice:<strong> <?php echo ( $players[ $x ]['advise_hit'] ? "Hit" : "Stay" ) ?> </strong></em></p>
 
+		<?php } ?>
 		<?php } else { ?>
 
         <input type='checkbox' value='newgame' id='newgame' name='choice' checked>
         <label for='new'> New Game</label>
 		
 		<button class='button_submit' type='submit'>Begin</button>
+		<?php } else { ?>
+		
+		
+        <input type='radio' value='hit' id='hit' name='choice' <?php if ( $players[ $x ]['advise_hit'] ) { echo 'checked'; } ?> >
+        <label for='hit'> Hit</label>
+
+        <input type='radio' value='stay' id='stay' name='choice' <?php if (! $players[ $x ]['advise_hit'] ) { echo 'checked'; } ?>>
+        <label for='stay'> Stay</label>
+		
+        <button class='button_submit' type='submit'>Your Choice</button> <strong><?php echo " {$players[ $x ]['name']}"; ?></strong>
+		
+		<p><em>Advice:<strong> <?php echo ( $players[ $x ]['advise_hit'] ? "Hit" : "Stay" ) ?> </strong></em></p>
+
 		<?php } ?>
+		<?php } else { ?>
+
+        <input type='checkbox' value='newgame' id='newgame' name='choice' checked>
+        <label for='new'> New Game</label>
+		
+		<button class='button_submit' type='submit'>Select</button>
+		<?php } ?>		
+		
+		
 
     </form>	
 
@@ -160,6 +185,12 @@
 		</div>
 	</div>
 	<?php } ?>
+	
+<?php
+print "<pre>";
+print_r( $players );
+print "</pre>";
+?>
 	
 </body>
 

@@ -100,8 +100,8 @@ function draw_a_hole_card( $x )
 	$_name = 'Bummer';
 	$_glyph = '&#x' . dechex( rand( hexdec("1f600"), hexdec("1f64f") ) ) . ';';
 
-	$ur_thinking = rand( 1, 10 );
-	$im_thinking = rand( 1, 10 );
+	$ur_thinking = rand( 1, 2 );
+	$im_thinking = rand( 1, 2 );
 
 	if ( $ur_thinking == $im_thinking )
 	{
@@ -351,5 +351,29 @@ function determine_outcome()
 			}
 		}
 	}
+}
+
+function auto_playhand( $x )
+{
+	global $players;
+
+	while ( ( $players[ $x ]['total'] <= 21 ) && ( should_draw_a_card( $x ) ) )
+	{
+		$players[ $x ]['advise_hit'] = should_draw_a_card( $x );
+		$players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, took hit";
+		draw_a_card( $x );
+	}
+
+	if ( $players[ $x ]['total'] > 21 )
+	{
+		$players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, busted";
+	}
+	else
+	{
+		$players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, stayed";
+	}
+
+	$players[ $x ]["button"] = FALSE;
+	$players[ $x+1 ]["button"] = TRUE;	
 }
 

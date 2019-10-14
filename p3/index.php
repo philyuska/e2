@@ -135,7 +135,7 @@
 		<?php } else { ?>
 
         <input type='checkbox' value='newgame' id='newgame' name='choice' checked>
-        <label for='new'> New Game</label>
+        <label for='newgame'> New Game</label>
 		
 		<button class='button_submit' type='submit'>Begin</button>
 		<?php } ?>

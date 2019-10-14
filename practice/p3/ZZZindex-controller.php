@@ -79,7 +79,6 @@ else
 			if (! array_key_exists( $x, $players ) )
 			{ 
 				$players[ $x ]['name'] = ( $x == $dealer ? "Dealer" : "Player " . $x );
-				$players[ $x ]['guest'] = ( $x == 1 ? TRUE : FALSE );
 				$players[ $x ]['seat'] = ( $x == $dealer ? 0 : $x );
 				$players[ $x ]['hand'] = array();
 				$players[ $x ]['hole'] = array();
@@ -108,42 +107,6 @@ else
 		$players[ $x ]['advise_hit'] = should_draw_a_card( $x );
 	}
 
-	// for ( $x = 1; $x <= $max_players; $x++ )
-	// {
-		// if ( $players[ $x ]['guest'] )
-		// {
-			// $players[ $x ]['advise_hit'] = should_draw_a_card( $x );
-			// break;
-		// }
-		// else
-		// {
-			// if (! $players[ $x ]['bonus'] )
-			// {
-				// while ( $players[ $x ]['total'] <= 21 )
-				// {
-					// $players[ $x ]['advise_hit'] = should_draw_a_card( $x );
-					// $players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, took hit";
-					// $players[ $x ]["button"] = FALSE;
-					// $players[ $x+1 ]["button"] = TRUE;
-					// draw_a_card( $x );
-				// }
-
-				// if ( $players[ $x ]['total'] > 21 )
-				// {
-					// $players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, busted";
-					// $players[ $x ]["button"] = FALSE;
-					// $players[ $x+1 ]["button"] = TRUE;
-				// }
-				// else
-				// {
-					// $players[ $x ]['digest'][] = "total is {$players[ $x ]['total']}, stayed";
-					// $players[ $x ]["button"] = FALSE;
-					// $players[ $x+1 ]["button"] = TRUE;
-				// }
-			// }
-		// }
-	// }
-	
 	if ( $players[ $dealer ]['bonus'] )
 	{
 		for ( $x = 1; $x <= $max_players; $x++ )
