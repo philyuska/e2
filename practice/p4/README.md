@@ -1,14 +1,11 @@
-# Project 3
+# Project 4
 + By: *Phil Yuska*
-+ Production URL: <http://p3.tymabus.fun>
++ Production URL: <http://practice.tymabus.fun/p4>
 
 ## Game planning
 * Play a hand of Blackjack. A single player attempts to beat the dealer by getting a hand total closest to 21 without going over.
 * Model it after the traditional casino table game.
-* Build upon project 2 by accepting input by a player via an html form and process.php
-* Restrict `max_players` to 1 so as not to make my head hurt
-* Move UDFs into a new require file `game-lib.php` so they can be shared by the application 
-* Incorporate a bonus win based on the dealers hole card.
+* Build upon project 3 by incorporating objects in place of game-lib.php
 
 * Initialize a compound array of 208 playing cards `deck` containing the properties of each playing card 
 	* name = plain english name and suit of card ( concatenation of card name and suit )
