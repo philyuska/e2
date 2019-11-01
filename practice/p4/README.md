@@ -73,4 +73,5 @@ https://www.w3schools.com/howto/howto_css_cards.asp
 #
 https://www.casinosupply.com/pages/search-results/shoe
 https://en.wikipedia.org/wiki/Glossary_of_blackjack_terms
+https://stackoverflow.com/questions/9332596/pass-an-object-as-parameter-in-php
 ## Notes for instructor

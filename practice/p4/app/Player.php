@@ -8,7 +8,7 @@ class Player
     public $hole;
     public $total;
     public $blackjack;
-    public $bonus;
+    public $bonusWin;
     public $button;
     public $digest;
     public $outcome;
@@ -21,20 +21,22 @@ class Player
         $this->hole = array();
         $this->total = 0;
         $this->blackjack = false;
-        $this->bonus = false;
+        $this->bonusWin = false;
         $this->button = ($seat == 1 ? true : false);
 
-        $this->digest = array('Deal');
+        $this->digest = array();
         $this->outcome = "";
     }
 
     public function getName()
     {
+        return $this->name;
     }
 
     public function drawCard($card)
     {
         $this->hand[] = $card;
+        return $card['name'];
     }
 
     public function drawHoleCard($cards)
@@ -44,37 +46,11 @@ class Player
         $this->hole[] = $hole;
     }
 
+
     public function debug()
     {
         print "<pre>";
         print_r($this);
         print "</pre>";
     }
-
-    /*     public function getHandTotal()
-        {
-            $this->total = 0;
-
-            foreach ($this->hand as $card) {
-                if ($card['rank'] <> 1) {
-                    $this->total = $this->total + $card['value'];
-                }
-            }
-
-            foreach ($this->hand as $card) {
-                if ($card['rank'] == 1) {
-                    if ($this->total == 10) {
-                        $this->blackjack = true;
-                        $this->total = $this->total + 11;
-                    } else {
-                        if (($this->total + 11) > 21) {
-                            $this->total = $this->total + 1;
-                        } else {
-                            $this->total = $this->total + 11;
-                        }
-                    }
-                }
-            }
-            return $this->total;
-        } */
 }
