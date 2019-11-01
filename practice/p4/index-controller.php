@@ -1,28 +1,33 @@
 <?php
 require 'app/BlackJack.php';
 require 'app/ShoeOfCards.php';
-require 'app/Player.php';
+require 'app/BlackJackPlayer.php';
+require 'app/Patron.php';
 
 $maxPlayers = 2;
-$dealer = $maxPlayers + 1;
 
 print "<pre>";
 
 $game = new BlackJack();
 
-for ($x=1; $x<=$maxPlayers; $x++) {
-    $players[$x] = new Player($playerName=$x, $seat=$x);
-    $game->registerPlayer($players[$x], $seat);
-}
+$patron = new Patron();
 
+for ($x=1; $x<=$maxPlayers; $x++) {
+    $patron = new Patron("mutt" . $x);
+    $players[$x] = new BlackJackPlayer($patron);
+    $game->registerPlayer($players[$x], $seat=$x);
+}
 
 $game->newRound();
 
-$game->dealHand($players);
+$game->dealHand();
 
-//$game->applyIntialGameRules($players);
+foreach ($game->players as $player) {
+    $player->drawCard($game->deck->dealCard());
+}
 
-//print_r($players);
+$game->dealer->drawCard($game->deck->dealCard());
+
 $game->debug();
 
 exit;

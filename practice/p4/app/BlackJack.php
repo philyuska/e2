@@ -14,10 +14,9 @@ class BlackJack
 
     public function __construct(int $seats=1)
     {
-        //$this->seats = (($seats > $this->maxSeats) ? $this->maxSeats : $seats);
-        $this->dealer = new Player($playerName="Dealer", $seat=0);
+        $this->dealer = new BlackJackPlayer();
+        $this->players = array();
         $this->deck = new ShoeOfCards(1);
-        $this->seats = array();
     }
 
     public function getInitialHandSize()
@@ -40,15 +39,11 @@ class BlackJack
         return $this->currentRound;
     }
 
-
-
-    public function dealHand($players)
+    public function dealHand()
     {
-        $cardDigest = array();
-
         for ($i=1; $i<=$this->getInitialHandSize(); $i++) {
-            for ($x=1; $x<=count($players); $x++) {
-                $cardDigest[$x][] =  $players[$x]->drawCard($this->deck->dealCard());
+            for ($x=1; $x<=count($this->players); $x++) {
+                $this->players[$x]->drawCard($this->deck->dealCard());
             }
 
             if ($i == ($this->getInitialHandSize())) {
@@ -58,11 +53,7 @@ class BlackJack
             }
         }
 
-        $this->applyIntialGameRules($players);
-
-        for ($x=1; $x<=count($players); $x++) {
-            $players[$x]->digest[$this->getCurrentRound()]['Deal'] = join(',', $cardDigest[$x]);
-        }
+        $this->applyIntialGameRules();
     }
  
     public function shouldHit($player)
@@ -120,7 +111,7 @@ class BlackJack
         return false;
     }
 
-    public function applyIntialGameRules($players)
+    public function applyIntialGameRules()
     {
         if (count($this->dealer->hand) < $this->getInitialHandSize()) {
             return;
@@ -138,21 +129,20 @@ class BlackJack
             ) {
                 $this->blackjack = true;
                 $this->dealer->blackjack = true;
-                $this->dealer->total = 21;
+                $this->dealer->handTotal = 21;
                 $this->roundOver = true;
             } else {
                 if ($this->dealer->hand[0]['rank'] == 1) {
-                    $this->dealer->total = $this->dealer->total + 11;
+                    $this->dealer->handTotal = 11;
                 } else {
-                    $this->dealer->total = $this->dealer->total + $this->dealer->hand[0]['value'];
+                    $this->dealer->handTotal = $this->dealer->hand[0]['value'];
                 }
             }
         }
 
-        for ($x = 1; $x <= count($players); $x++) {
-            $this->calcPlayerHandTotal($players[$x]);
-            if ($players[$x]->total == 21) {
-                $players[$x]->blackjack = true;
+        foreach ($this->players as $player) {
+            if ($player->handTotal() == 21) {
+                $player->blackjack = true;
             }
         }
     }
@@ -192,25 +182,26 @@ class BlackJack
         }
     }
 
-    public function calcPlayerHandTotal($player)
+    public function calcPlayerHandTotal($seat)
     {
-        $player->total = 0;
+        $seat['total'] = 0;
+        $player = $seat['player'];
 
         foreach ($player->hand as $card) {
             if ($card['rank'] <> 1) {
-                $player->total = $player->total + $card['value'];
+                $seat['total'] = $seat['total'] + $card['value'];
             }
         }
 
         foreach ($player->hand as $card) {
             if ($card['rank'] == 1) {
-                if ($player->total == 10) {
-                    $player->total = $player->total + 11;
+                if ($seat['total'] == 10) {
+                    $seat['total'] = $seat['total'] + 11;
                 } else {
-                    if (($player->total + 11) > 21) {
-                        $player->total = $player->total + 1;
+                    if (($seat['total'] + 11) > 21) {
+                        $seat['total'] = $seat['total'] + 1;
                     } else {
-                        $player->total = $player->total + 11;
+                        $seat['total'] = $seat['total'] + 11;
                     }
                 }
             }
@@ -282,12 +273,11 @@ class BlackJack
         }
     }
 
-    public function registerPlayer(Player $player, $seat)
+    public function registerPlayer(BlackJackPlayer $player, $seat)
     {
-        $this->seats[$seat]['player'] = $player;
-        $this->seats[$seat]['total'] = 0;
-        $this->seats[$seat]['blackjack'] = false;
-        $this->seats[$seat]['button'] = ($seat == 1 ? true : false);
+        $player->seat = $seat;
+        $player->button = (($seat==1) ? true : false);
+        $this->players[$seat] = $player;
     }
 
 
