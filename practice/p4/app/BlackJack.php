@@ -76,7 +76,7 @@ class BlackJack
         $this->dealer->showHand();
     }
  
-    public function shouldHit($player)
+    public function shouldHit(BlackJackPlayer $player)
     {
         $strategy = array(
             'hard' => array(
@@ -114,16 +114,16 @@ class BlackJack
             ),
         );
     
-        if ($player->hand[0]['value'] == 1) {
-            if ($player->total > 12) {
-                if (in_array($player->hand[0]['value'], $strategy['soft'][ $player->total ])) {
+        if ($player->hand[1]['value'] == 1) {
+            if ($player->handTotal() > 12) {
+                if (in_array($player->hand[1]['value'], $strategy['soft'][ $player->handTotal() ])) {
                     return true;
                 }
             }
         }
         
-        if ($player->total < 17) {
-            if (in_array($player->hand[0]['value'], $strategy['hard'][ $player->total ])) {
+        if ($player->handTotal < 17) {
+            if (in_array($player->hand[1]['value'], $strategy['hard'][ $player->handTotal() ])) {
                 return true;
             }
         }

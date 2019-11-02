@@ -30,14 +30,17 @@ $game->dealHand();
 // $game->debug();
 
 foreach ($game->players as $player) {
-    $player->drawCard($game->deck->dealCard());
-
-    print $player->getName() . " " . $player->handSummary() . "\n";
+    while (($player->handTotal() < 21) && ($game->shouldHit($player))) {
+        $player->drawCard($game->deck->dealCard());
+    }
+    print $player->getName() . " " . $player->handSummary() . " total: " . $player->handTotal() . "\n";
 }
 
-print $game->dealer->getName() . " " . $game->dealer->handSummary() . "\n";
+if ($game->dealer->handTotal() < 17) {
+    $game->dealer->drawCard($game->deck->dealCard());
+}
 
-//$game->dealer->drawCard($game->deck->dealCard());
+print $game->dealer->getName() . " " . $game->dealer->handSummary() . " total: " . $game->dealer->handTotal() . "\n";
 
 $game->debug();
 
