@@ -4,58 +4,58 @@ class BlackJackDealer extends BlackJackPlayer
 {
     public $name;
     public $hole;
+    protected $game;
 
-    public function __construct(string $name="Dealer")
+    public function __construct(string $name="Dealer", BlackJack $game=null)
     {
         $this->name = $name;
         $this->hole = array();
+        $this->game = $game;
     }
 
-    public function drawHoleCard($cards)
+    public function getName()
+    {
+        return $this->name;
+    }
+    
+
+    public function drawHoleCard(array $cards, int $key)
     {
         list($card, $hole) = $cards;
-        $this->hand[] = $card;
-        $this->hole[] = $hole;
+        $this->hand[$key] = $card;
+        $this->hole[$key] = $hole;
     }
 
     public function peekHand()
     {
-        if ($this->hand[1]['value'] == 21) {
-            $this->bonusWin = true;
-            $this->roundOver = true;
+        if ($this->hand[2]['value'] == 21) {
+            $this->game->setBonusWin();
+            $this->game->setRoundOver();
         } elseif (
-            (($this->hand[0]['rank'] == 1) && ($this->hole[0]['value'] == 10)) ||
-            (($this->hand[0]['value'] == 10) && ($this->hole[0]['rank'] == 1))
+            (($this->hand[1]['rank'] == 1) && ($this->hole[2]['value'] == 10)) ||
+            (($this->hand[1]['value'] == 10) && ($this->hole[2]['rank'] == 1))
         ) {
-            $this->blackjack = true;
             $this->handTotal = 21;
-            $this->roundOver = true;
+            $this->game->setBlackJack();
+            $this->game->setRoundOver();
         }
     }
 
-
-    public function handTotal()
+    public function showHand()
     {
-        $this->handTotal = 0;
-        foreach ($this->hand as $card) {
-            if ($card['rank'] <> 1) {
-                $this->handTotal = $this->handTotal + $card['value'];
-            }
+        foreach (array_keys($this->hole) as $key) {
+            $this->hand[$key] = $this->hole[$key];
         }
 
-        foreach ($this->hand as $card) {
-            if ($card['rank'] == 1) {
-                if ($this->handTotal == 10) {
-                    $this->handTotal = $this->handTotal + 11;
-                } else {
-                    if (($this->handTotal + 11) > 21) {
-                        $this->handTotal = $this->handTotal + 1;
-                    } else {
-                        $this->handTotal = $this->handTotal + 11;
-                    }
-                }
-            }
-        }
-        return $this->handTotal;
+        unset($this->hole);
+        $this->handTotal = $this->handTotal();
+    }
+
+    public function debug()
+    {
+        print "<pre>";
+        print_r($this->hand);
+        print_r($this->hole);
+        print "</pre>";
     }
 }

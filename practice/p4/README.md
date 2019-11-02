@@ -63,6 +63,7 @@
 		
 ## Outside resources
 https://www.php.net/manual/en/
+https://www.php.net/manual/en/function.substr.php
 https://stackoverflow.com/questions/1597736/how-to-sort-an-array-of-associative-arrays-by-value-of-a-given-key-in-php
 https://secure.php.net/manual/en/function.array-multisort.php
 https://en.wikipedia.org/wiki/Standard_52-card_deck
@@ -73,5 +74,6 @@ https://www.w3schools.com/howto/howto_css_cards.asp
 #
 https://www.casinosupply.com/pages/search-results/shoe
 https://en.wikipedia.org/wiki/Glossary_of_blackjack_terms
+https://emojipedia.org
 https://stackoverflow.com/questions/9332596/pass-an-object-as-parameter-in-php
 ## Notes for instructor
