@@ -33,6 +33,11 @@ class Patron
         $this->tokens = $this->tokens - $tokens;
     }
 
+    public function setHistory(string $entry)
+    {
+        $this->history[] = $entry;
+    }
+
     public function debug()
     {
         print "<pre>";

@@ -15,7 +15,7 @@ class BlackJackPlayer
         $this->hand = array();
         $this->handTotal;
         $this->seat;
-        $this->button;
+        $this->button = false;
         $this->blackjack = false;
         $this->patron = $patron;
         $this->name = ($patron ? null : $playerName);
@@ -27,6 +27,23 @@ class BlackJackPlayer
             return $this->name;
         }
         return $this->patron->getName();
+    }
+
+    public function setHandHistory(string $entry)
+    {
+        if ($this->patron) {
+            $this->patron->setHistory($entry);
+        }
+    }
+
+    public function isPatron()
+    {
+        return (is_object($this->patron) ? true : false);
+    }
+
+    public function hasButton()
+    {
+        return ($this->button ? true : false);
     }
 
     public function drawCard(array $card, int $key=null)

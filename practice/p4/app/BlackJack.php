@@ -41,7 +41,6 @@ class BlackJack
         $this->blackJack = true;
     }
 
-
     public function yahPooBonusWin()
     {
         return $this->bonusWin;
@@ -50,6 +49,7 @@ class BlackJack
     public function newRound()
     {
         $this->currentRound++;
+        $this->players[1]->button = true;
     }
 
     public function getCurrentRound()
@@ -164,7 +164,6 @@ class BlackJack
         }
     }
 
-
     public function determineOutcome($players, $dealer)
     {
         for ($x = 1; $x <= count($players) -1; $x++) {
@@ -209,7 +208,6 @@ class BlackJack
 
         if ($seat) {
             $player->seat = $this->seatsAvailable[$seat];
-
             unset($this->seatsAvailable[$player->seat]);
         } else {
             shuffle($seatsAvailable);
@@ -217,17 +215,21 @@ class BlackJack
             unset($this->seatsAvailable[$player->seat]);
         }
 
-        $player->button = (($player->seat==1) ? true : false);
+        //$player->button = (($player->seat==1) ? true : false);
         $this->players[$player->seat] = $player;
 
         ksort($this->players);
     }
 
-    public function getSeatsAvailable()
+    public function passButton(int $seat)
     {
-        return count($this->seatsAvailable);
+        if ($seat == $this->seats) {
+            $this->players[$seat]->button = false;
+        } else {
+            $this->players[$seat]->button = false;
+            $this->players[$seat+1]->button = true;
+        }
     }
-
 
     public function debug()
     {

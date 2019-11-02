@@ -18,32 +18,44 @@ $game->registerPlayer($player);
 
 for ($x=1; $x<= $game->seats -1; $x++) {
     $playerName = array_shift($names);
-
     $players[$x] = new BlackJackPlayer($patron=null, $playerName = $playerName);
     $game->registerPlayer($players[$x]);
 }
 
 $game->newRound();
 
-$game->dealHand();
+while ($game->getCurrentRound() < 4) {
+    $game->dealHand();
 
-// $game->debug();
+    foreach ($game->players as $player) {
+        if ($player->hasButton()) {
+            while (($player->handTotal() < 21) && ($game->shouldHit($player))) {
+                $player->drawCard($game->deck->dealCard());
+            }
+            print " round " . $game->getCurrentRound() . " : " . $player->getName() . " " . $player->handSummary() . " total: " . $player->handTotal() . "\n";
+            $player->setHandHistory($player->handSummary() . " total: " . $player->handTotal());
+            $game->passButton($player->seat);
+        }
+    }
+
+    if ($game->dealer->handTotal() < 17) {
+        $game->dealer->drawCard($game->deck->dealCard());
+    }
+
+    print " round " . $game->getCurrentRound() . " : " . $game->dealer->getName() . " " . $game->dealer->handSummary() . " total: " . $game->dealer->handTotal() . "\n";
+
+    $game->newRound();
+}
 
 foreach ($game->players as $player) {
-    while (($player->handTotal() < 21) && ($game->shouldHit($player))) {
-        $player->drawCard($game->deck->dealCard());
+    if ($player->isPatron()) {
+        $player->debug();
     }
-    print $player->getName() . " " . $player->handSummary() . " total: " . $player->handTotal() . "\n";
 }
 
-if ($game->dealer->handTotal() < 17) {
-    $game->dealer->drawCard($game->deck->dealCard());
-}
 
-print $game->dealer->getName() . " " . $game->dealer->handSummary() . " total: " . $game->dealer->handTotal() . "\n";
 
-$game->debug();
-
+    $game->debug();
 exit;
 
 $game->applyRules($players[$dealer], $players[$dealer]);
