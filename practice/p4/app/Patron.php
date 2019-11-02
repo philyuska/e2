@@ -3,19 +3,34 @@
 class Patron
 {
     public $name;
-    public $wallet;
     public $history;
+    protected $tokens;
 
     public function __construct(string $name="Anonymous")
     {
         $this->name = $name;
-        $this->wallet = 0;
+        $this->tokens = 50;
         $this->history = array();
     }
 
     public function getName()
     {
         return $this->name;
+    }
+
+    public function getTokens()
+    {
+        return $this->tokens;
+    }
+
+    public function addTokens(int $tokens)
+    {
+        $this->tokens = $this->tokens + $tokens;
+    }
+
+    public function subTokens(int $tokens)
+    {
+        $this->tokens = $this->tokens - $tokens;
     }
 
     public function debug()

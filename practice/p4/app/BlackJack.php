@@ -14,7 +14,7 @@ class BlackJack
 
     public function __construct(int $seats=1)
     {
-        $this->dealer = new BlackJackPlayer();
+        $this->dealer = new BlackJackDealer();
         $this->players = array();
         $this->deck = new ShoeOfCards(1);
     }
@@ -53,7 +53,8 @@ class BlackJack
             }
         }
 
-        $this->applyIntialGameRules();
+        //$this->applyIntialGameRules();
+        $this->dealer->peekHand();
     }
  
     public function shouldHit($player)
@@ -279,6 +280,8 @@ class BlackJack
         $player->button = (($seat==1) ? true : false);
         $this->players[$seat] = $player;
     }
+
+
 
 
     public function debug()

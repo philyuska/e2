@@ -1,34 +1,38 @@
 <?php
 
-class BlackJackPlayer
+class BlackJackDealer extends BlackJackPlayer
 {
-    public $hand;
-    public $handTotal;
-    public $blackjack;
-    public $button;
-    public $seat;
-    private $patron;
+    public $name;
+    public $hole;
 
-    public function __construct(Patron $patron=null)
+    public function __construct(string $name="Dealer")
     {
-        $this->hand = array();
-        $this->handTotal;
-        $this->seat;
-        $this->button;
-        $this->blackjack = false;
-        $this->patron = $patron;
+        $this->name = $name;
+        $this->hole = array();
     }
 
-    public function getName()
+    public function drawHoleCard($cards)
     {
-        return $this->patron->getName();
-    }
-
-    public function drawCard($card)
-    {
+        list($card, $hole) = $cards;
         $this->hand[] = $card;
-        $this->handTotal();
+        $this->hole[] = $hole;
     }
+
+    public function peekHand()
+    {
+        if ($this->hand[1]['value'] == 21) {
+            $this->bonusWin = true;
+            $this->roundOver = true;
+        } elseif (
+            (($this->hand[0]['rank'] == 1) && ($this->hole[0]['value'] == 10)) ||
+            (($this->hand[0]['value'] == 10) && ($this->hole[0]['rank'] == 1))
+        ) {
+            $this->blackjack = true;
+            $this->handTotal = 21;
+            $this->roundOver = true;
+        }
+    }
+
 
     public function handTotal()
     {
@@ -53,22 +57,5 @@ class BlackJackPlayer
             }
         }
         return $this->handTotal;
-    }
-
-    public function winner()
-    {
-        $this->patron->addTokens(25);
-    }
-
-    public function loser()
-    {
-        $this->patron->subTokens(25);
-    }
-
-    public function debug()
-    {
-        print "<pre>";
-        print_r($this);
-        print "</pre>";
     }
 }

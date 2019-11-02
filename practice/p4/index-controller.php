@@ -2,7 +2,9 @@
 require 'app/BlackJack.php';
 require 'app/ShoeOfCards.php';
 require 'app/BlackJackPlayer.php';
+require 'app/BlackJackDealer.php';
 require 'app/Patron.php';
+
 
 $maxPlayers = 2;
 
@@ -24,9 +26,11 @@ $game->dealHand();
 
 foreach ($game->players as $player) {
     $player->drawCard($game->deck->dealCard());
+
+    $player->loser();
 }
 
-$game->dealer->drawCard($game->deck->dealCard());
+//$game->dealer->drawCard($game->deck->dealCard());
 
 $game->debug();
 
