@@ -87,7 +87,12 @@ class ShoeOfCards
 
         $card = array_shift($this->deck);
     
-        return array($holecard, $card );
+        return array($holecard, $card);
+    }
+
+    public function getCardsRemaining()
+    {
+        return count($this->deck);
     }
 
     public function debug()

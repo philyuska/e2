@@ -9,6 +9,9 @@ class BlackJack
     private $gameOver = false;
     private $roundOver = false;
 
+    private $shoeSize = 6;
+    private $shoeReshuffle = .25;
+
     private $currentRound = 0;
 
 
@@ -16,9 +19,9 @@ class BlackJack
     {
         $this->seats = ($seats ? $seats : $this->maxSeats);
         $this->seatsAvailable = range(0, $this->seats);
-        $this->dealer = new BlackJackDealer($name="Dealer", $game = $this);
+        $this->dealer = new BlackJackDealer($name="Dealer");
         $this->players = array();
-        $this->deck = new ShoeOfCards(1);
+        $this->deck = new ShoeOfCards($this->shoeSize);
     }
 
     public function getInitialHandSize()
@@ -49,7 +52,18 @@ class BlackJack
     public function newRound()
     {
         $this->currentRound++;
+        $this->bonusWin = false;
+        $this->blackJack = false;
+        $this->dealer->newHand();
+
+        if ($this->deck->getCardsRemaining() < ($this->shoeSize * 52) * $this->shoeReshuffle) {
+            $this->deck = new ShoeOfCards($this->shoeSize);
+        }
+
         $this->players[1]->button = true;
+        foreach ($this->players as $player) {
+            $player->newHand();
+        }
     }
 
     public function getCurrentRound()
@@ -71,11 +85,32 @@ class BlackJack
             }
         }
 
-        $this->dealer->peekHand();
-        // $this->dealer->debug();
-        $this->dealer->showHand();
+        //$this->handPeek();
+
+        // if ($this->handPeek()) {
+        //     $this->dealer->showHand();
+        //     return;
+        // }
     }
  
+    public function handPeek()
+    {
+        if ($this->dealer->hand[2]['value'] == 21) {
+            $this->setBonusWin();
+            $this->setRoundOver();
+        } elseif (
+            (($this->dealer->hand[1]['rank'] == 1) && ($this->dealer->hole[2]['value'] == 10)) ||
+            (($this->dealer->hand[1]['value'] == 10) && ($this->dealer->hole[2]['rank'] == 1))
+        ) {
+            $this->dealer->handTotal = 21;
+            $this->setBlackJack();
+            $this->setRoundOver();
+        }
+
+        return ($this->determinePeekOutcome());
+    }
+
+
     public function shouldHit(BlackJackPlayer $player)
     {
         $strategy = array(
@@ -164,38 +199,59 @@ class BlackJack
         }
     }
 
-    public function determineOutcome($players, $dealer)
+    public function determinePeekOutcome()
     {
-        for ($x = 1; $x <= count($players) -1; $x++) {
-            if ($this->bonusWin) {
-                $players[$x]->outcome = "yahPoo Bonus Win!!";
-            } else {
-                if ($players[ $x ]->total > 21) {
-                    $players[ $x ]->outcome = "Busted";
+        if ($this->bonusWin) {
+            foreach ($this->players as $player) {
+                $player->handOutcome['bonusWin'] = true;
+                $player->outcome = "Win, yahPoo bonus";
+            }
+
+            return 1;
+        } elseif ($this->blackJack) {
+            foreach ($this->players as $player) {
+                if ($player->handTotal() == 21) {
+                    $player->blackJack = true;
+                    $player->handOutcome['playerPush'] = true;
+                    $player->outcome = "Push";
                 } else {
-                    if ($dealer->total <= 21) {
-                        if ($players[ $x ]->total < $dealer->total) {
-                            $players[ $x ]->outcome = "Loser";
-                        }
-                        
-                        if ($players[ $x ]->total == $dealer->total) {
-                            $players[ $x ]->outcome = "Push";
-                        }
-                        
-                        if ($players[ $x ]->total > $dealer->total) {
-                            $players[ $x ]->outcome = "Winner";
-                        }
-                    }
-                    
-                    if ($dealer->total > 21) {
-                        $dealer->outcome = "Busted";
-                        
-                        if ($players[ $x ]->total <= 21) {
-                            $players[ $x ]->outcome = "Winner";
-                        } else {
-                            $players[ $x ]->outcome = "Busted";
-                        }
-                    }
+                    $player->handOutcome['playerLoss'] = true;
+                    $player->outcome = "Lost, dealer blackjack";
+                }
+            }
+            return 1;
+        }
+    }
+
+    public function determineOutcome()
+    {
+        if ($this->dealer->handTotal() > 21) {
+            foreach ($this->players as $player) {
+                if ($player->handTotal() > 21) {
+                    $player->handOutcome['playerLoss'] = true;
+                    $player->outcome = "Bust";
+                } elseif ($player->handTotal() <= 21) {
+                    $player->handOutcome['playerWin'] = true;
+                    $player->outcome = "Win, dealer bust";
+                } else {
+                    $player->handOutcome['playerLoss'] = true;
+                    $player->outcome = "Lost";
+                }
+            }
+        } else {
+            foreach ($this->players as $player) {
+                if ($player->handTotal() > 21) {
+                    $player->handOutcome['playerLoss'] = true;
+                    $player->outcome = "Bust";
+                } elseif ($player->handTotal() == $this->dealer->handTotal()) {
+                    $player->handOutcome['playerPush'] = true;
+                    $player->outcome = "Push";
+                } elseif ($player->handTotal() > $this->dealer->handTotal()) {
+                    $player->handOutcome['playerWin'] = true;
+                    $player->outcome = "Win";
+                } else {
+                    $player->handOutcome['playerLoss'] = true;
+                    $player->outcome = "Lost";
                 }
             }
         }

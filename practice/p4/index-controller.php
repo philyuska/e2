@@ -22,36 +22,43 @@ for ($x=1; $x<= $game->seats -1; $x++) {
     $game->registerPlayer($players[$x]);
 }
 
-$game->newRound();
-
-while ($game->getCurrentRound() < 4) {
+while ($game->getCurrentRound() < 1) {
+    $game->newRound();
     $game->dealHand();
+
+    
 
     foreach ($game->players as $player) {
         if ($player->hasButton()) {
             while (($player->handTotal() < 21) && ($game->shouldHit($player))) {
                 $player->drawCard($game->deck->dealCard());
             }
-            print " round " . $game->getCurrentRound() . " : " . $player->getName() . " " . $player->handSummary() . " total: " . $player->handTotal() . "\n";
             $player->setHandHistory($player->handSummary() . " total: " . $player->handTotal());
             $game->passButton($player->seat);
         }
     }
 
-    if ($game->dealer->handTotal() < 17) {
+    $game->dealer->showHand();
+
+    while ($game->dealer->handTotal() < 17) {
         $game->dealer->drawCard($game->deck->dealCard());
     }
 
     print " round " . $game->getCurrentRound() . " : " . $game->dealer->getName() . " " . $game->dealer->handSummary() . " total: " . $game->dealer->handTotal() . "\n";
 
-    $game->newRound();
-}
+    $game->determineOutcome();
 
-foreach ($game->players as $player) {
-    if ($player->isPatron()) {
-        $player->debug();
+    foreach ($game->players as $player) {
+        print " round " . $game->getCurrentRound() . " : " . $player->getName() . " " . $player->handSummary() . " total: " . $player->handTotal() . " " . $player->outcome . "\n";
     }
 }
+
+
+// foreach ($game->players as $player) {
+//     if ($player->isPatron()) {
+//         $player->debug();
+//     }
+// }
 
 
 

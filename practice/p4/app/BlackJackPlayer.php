@@ -4,7 +4,9 @@ class BlackJackPlayer
 {
     public $hand;
     public $handTotal;
-    public $blackjack;
+    public $blackJack;
+    public $handOutcome = array('bonusWin' => false,'playerWin' => false, 'playerLoss' => false, 'playerPush' => false);
+    public $outcome;
     public $button;
     public $seat;
     private $patron;
@@ -12,13 +14,21 @@ class BlackJackPlayer
 
     public function __construct(Patron $patron=null, $playerName="Anonymous")
     {
-        $this->hand = array();
-        $this->handTotal;
         $this->seat;
         $this->button = false;
-        $this->blackjack = false;
+        $this->hand = array();
+        $this->handTotal;
+        $this->blackJack = false;
+        $this->handOutcome;
+        $this->outcome;
         $this->patron = $patron;
         $this->name = ($patron ? null : $playerName);
+    }
+
+    public function newHand()
+    {
+        $this->hand = array();
+        $this->handTotal = 0;
     }
 
     public function getName()
