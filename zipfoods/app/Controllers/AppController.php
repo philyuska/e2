@@ -14,4 +14,8 @@ class AppController extends Controller
             'welcome' => $welcomes[array_rand($welcomes)]
         ]);
     }
+    public function about()
+    {
+        return $this->app->view('about', "");
+    }	
 }
