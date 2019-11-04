@@ -101,7 +101,7 @@ class BlackJackPlayer
     public function collectAnte(int $tokens = 1)
     {
         if ($tokens < $this->patron->getTokens()) {
-            // $this->patron->subTokens($tokens);
+            $this->patron->subTokens($tokens);
             $this->ante = $tokens;
         }
     }

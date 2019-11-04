@@ -276,11 +276,9 @@ class BlackJack
         }
         foreach ($this->players as $player) {
             if ($player->isPatron() && $player->handOutcome['playerWin']) {
-                $player->winner($player->ante + $payout);
-            } elseif ($player->isPatron() && $player->handOutcome['playerLoss']) {
-                $player->loser($player->ante);
+                $player->winner($player->ante * $payout);
             } elseif ($player->isPatron() && $player->handOutcome['playerPush']) {
-                $player->winner();
+                $player->winner($player->ante);
             }
         }
     }
