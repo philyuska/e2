@@ -22,43 +22,66 @@ for ($x=1; $x<= $game->seats -1; $x++) {
     $game->registerPlayer($players[$x]);
 }
 
-while ($game->getCurrentRound() < 1) {
-    $game->newRound();
-    $game->dealHand();
+foreach ($game->players as $player) {
+    if ($player->isPatron()) {
+        print $player->getName() . " starting with tokens " . $player->getTokens() . "\n";
+    }
+}
 
-    
+while ($game->getCurrentRound() < 3) {
+    $game->newRound();
 
     foreach ($game->players as $player) {
-        if ($player->hasButton()) {
-            while (($player->handTotal() < 21) && ($game->shouldHit($player))) {
-                $player->drawCard($game->deck->dealCard());
-            }
-            $player->setHandHistory($player->handSummary() . " total: " . $player->handTotal());
-            $game->passButton($player->seat);
+        if ($player->isPatron()) {
+            $player->collectAnte();
+            print " round " . $game->getCurrentRound() . " Ante : " . $player->getName() . " tokens " . $player->getTokens() . "\n";
         }
     }
 
-    $game->dealer->showHand();
+    $game->dealHand();
+    $game->peekHand();
 
-    while ($game->dealer->handTotal() < 17) {
-        $game->dealer->drawCard($game->deck->dealCard());
+    if ($game->continueRound()) {
+        foreach ($game->players as $player) {
+            if ($player->hasButton()) {
+                while (($player->handTotal() < 21) && ($game->shouldHit($player))) {
+                    $player->drawCard($game->deck->dealCard());
+                }
+                $player->setHandHistory($player->handSummary() . " total: " . $player->handTotal());
+                $game->passButton($player->seat);
+            }
+        }
+
+        $game->dealer->showHand();
+
+        while ($game->dealer->handTotal() < 17) {
+            $game->dealer->drawCard($game->deck->dealCard());
+        }
+        $game->determineOutcome();
+    } elseif ($game->getBlackJack()) {
+        $game->dealer->showHand();
     }
 
-    print " round " . $game->getCurrentRound() . " : " . $game->dealer->getName() . " " . $game->dealer->handSummary() . " total: " . $game->dealer->handTotal() . "\n";
+    $game->payout();
 
-    $game->determineOutcome();
+    if ($game->getBonusWin()) {
+        print " round " . $game->getCurrentRound() . " : Bonus win " . $game->dealer->hand[2]['glyph'] . " awarded at " . $game->dealer->hole[2]['value'] . "X ante\n";
+    } else {
+        print " round " . $game->getCurrentRound() . " : " . $game->dealer->getName() . " " . $game->dealer->handSummary() . " total: " . $game->dealer->handTotal() . "\n";
+    }
 
     foreach ($game->players as $player) {
         print " round " . $game->getCurrentRound() . " : " . $player->getName() . " " . $player->handSummary() . " total: " . $player->handTotal() . " " . $player->outcome . "\n";
     }
+
+    foreach ($game->players as $player) {
+        if ($player->isPatron()) {
+            print $player->getName() . " finished with tokens " . $player->getTokens() . "\n";
+        }
+    }
+
+    print "\n";
 }
-
-
-// foreach ($game->players as $player) {
-//     if ($player->isPatron()) {
-//         $player->debug();
-//     }
-// }
 
 
 
