@@ -6,7 +6,7 @@
     <h2>Product {{ $id }} not found</h2>
 
     <p>
-        Uh oh - we were not able to finf the product you were looking for.
+        Uh oh - we were not able to find the product you were looking for.
     </p>
 </div>
 
