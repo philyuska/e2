@@ -1,7 +1,7 @@
 <?php
-namespace App\Controllers;
+namespace App\GameObjects;
 
-class BlackJack extends Controller
+class BlackJack
 {
     private $maxSeats = 5;
     private $initalHandSize = 2;

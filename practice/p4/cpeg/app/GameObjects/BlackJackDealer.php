@@ -1,5 +1,5 @@
 <?php
-namespace App\Controllers;
+namespace App\GameObjects;
 
 class BlackJackDealer extends BlackJackPlayer
 {
