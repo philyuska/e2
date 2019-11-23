@@ -81,4 +81,48 @@ class ProductController extends Controller
         # we'll use to display a confirmation message.
         $this->app->redirect('/product?id='.$id, ['confirmationName' => $name]);
     }
+
+    public function addNew()
+    {
+        return $this->app->view('/products/addnew');
+    }
+
+    public function saveNew()
+    {
+        $this->app->validate([
+            'name' => 'required',
+            'description' => 'required',
+            'price' => 'required|numeric',
+            'available' => 'required|digit',
+            'weight'    => 'required|numeric',
+            'perishable'    => 'required|numeric',
+        ]);
+        # If the above validation fails, the user is redirected back to the product page
+        # and none of the following code will execute
+        
+        # Extract data from the form submission
+        $name = $this->app->input('name');
+        $description = $this->app->input('description');
+        $price = $this->app->input('price');
+        $available = $this->app->input('available');
+        $weight = $this->app->input('weight');
+        $perishable = $this->app->input('perishable');
+
+        
+        # Insert into the database
+        $data = [
+            'name' => $name,
+            'description' => $description,
+            'price' => $price,
+            'available' => $available,
+            'weight'    => $weight,
+            'perishable'    => $perishable,
+        ];
+
+        $this->app->db()->insert('products', $data);
+        
+        # Send the user back to the product page with a `confirmationName`
+        # we'll use to display a confirmation message.
+        $this->app->redirect('/products');
+    }
 }

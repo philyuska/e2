@@ -18,5 +18,8 @@ All Products
     </a>
     @endforeach
 </div>
+<div id='product-new'>
+    <a href='/products/new'>Add a new product
+</div>
 
 @endsection
