@@ -5,7 +5,9 @@
 <div class='container'>
 
     <h2>Clown Princess Abigail</h2>
-    <img id='princess-abby' src='images/abby.jpg' class='img-circle pull-left' alt='Photo of Clown Princess Abigail'>
+    <img id='princess-abby' src='images/abby.jpg' class='rounded-circle float-left'
+        alt='Photo of Clown Princess Abigail'>
+
 
     <h2>About Me</h2>
 

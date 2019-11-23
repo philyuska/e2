@@ -1,24 +1,27 @@
 <?php
-
 namespace App\Controllers;
 
 use App\GameObjects\Patron;
 
 class GuestServiceController extends Controller
 {
-    /**
-     *
-     */
+    public $patron = null;
+    
+    public function __construct($app)
+    {
+        parent::__construct($app);
+        $this->patron = new Patron();
+    }
+        
     public function index()
     {
-        $name = $this->app->param('name', 'Valued Guest');
-        $patron = new Patron($name);
-        return $this->app->view('guestservices.index', ['name' => $patron]);
+        return $this->app->view('guestservices.index', ['patron' => $this->patron]);
     }
 
     public function register()
     {
-        return $this->app->view('guestservices.register');
+        $data['previousUrl'] = $this->app->old('previousUrl');
+        return $this->app->view('guestservices.register', $data);
     }
 
     public function registerSave()
@@ -26,18 +29,28 @@ class GuestServiceController extends Controller
         $this->app->validate([
             'name' => 'required',
         ]);
-        # If the above validation fails, the user is redirected back to the product page
-        # and none of the following code will execute
-        
-        # Extract data from the form submission
-        $name = $this->app->input('name');
 
-        $this->app->redirect('/services?name='.$name);
+        $name = $this->app->input('name');
+        $redirectUrl = $this->app->input('redirect');
+        $this->patron = new Patron($name);
+
+        if ($redirectUrl) {
+            $this->app->redirect($redirectUrl);
+        } else {
+            $this->app->redirect('/services');
+        }
+    }
+
+    public function registerDestroy()
+    {
+        $this->patron->destroySession();
+        unset($this->patron);
+        $this->app->redirect('/services');
     }
 
 
     public function playerinfo()
     {
-        return $this->app->view('guestservices.playerinfo');
+        return $this->app->view('guestservices.playerinfo', ['patron' => $this->patron]);
     }
 }

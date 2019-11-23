@@ -1,6 +1,8 @@
 <?php
 namespace App\GameObjects;
 
+use App\GameObjects\Patron;
+
 class BlackJackPlayer
 {
     public $hand;
@@ -11,23 +13,37 @@ class BlackJackPlayer
     public $button;
     public $seat;
     public $name;
-    private $patron;
-    private $ante;
-    private $payout;
+    public $patron;
+    public $ante;
+    public $payout;
 
-    public function __construct(Patron $patron=null, $playerName="Anonymous")
+    public function __construct(array $playerProps = null, Patron $patron=null, $playerName="Anonymous")
     {
-        $this->seat = null;
-        $this->button = false;
-        $this->hand = array();
-        $this->ante = 0;
-        $this->handTotal = 0;
-        $this->blackJack = false;
-        $this->handOutcome =  array('bonusWin' => false,'playerWin' => false, 'playerLoss' => false, 'playerPush' => false);
-        $this->outcome = null;
-        $this->payout = null;
-        $this->patron = $patron;
-        $this->name = ($patron ? null : $playerName);
+        if ($playerProps) {
+            $this->seat = $playerProps['seat'];
+            $this->button = $playerProps['button'];
+            $this->hand = $playerProps['hand'];
+            $this->handTotal = $playerProps['handTotal'];
+            $this->blackJack = $playerProps['blackJack'];
+            $this->handOutcome =  $playerProps['handOutcome'];
+            $this->outcome = $playerProps['outcome'];
+            $this->name = $playerProps['name'];
+            $this->ante = $playerProps['ante'];
+            $this->payout = $playerProps['payout'];
+            $this->patron = ($playerProps['patron'] ? new Patron() : null);
+        } else {
+            $this->seat = null;
+            $this->button = false;
+            $this->hand = array();
+            $this->ante = 0;
+            $this->handTotal = 0;
+            $this->blackJack = false;
+            $this->handOutcome =  array('bonusWin' => false,'playerWin' => false, 'playerLoss' => false, 'playerPush' => false);
+            $this->outcome = null;
+            $this->payout = null;
+            $this->patron = $patron;
+            $this->name = ($patron ? null : $playerName);
+        }
     }
 
     public function newRound()

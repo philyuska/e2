@@ -5,10 +5,14 @@ class ShoeOfCards
 {
     public $deck = array();
 
-    public function __construct(int $shoeSize=1)
+    public function __construct(array $deckProps = null, int $shoeSize=1)
     {
-        $this->deck = $this->getDeck($shoeSize);
-        shuffle($this->deck);
+        if ($deckProps) {
+            $this->deck = $deckProps['deck'];
+        } else {
+            $this->deck = $this->getDeck($shoeSize);
+            shuffle($this->deck);
+        }
     }
 
     public function getDeck($shoeSize)

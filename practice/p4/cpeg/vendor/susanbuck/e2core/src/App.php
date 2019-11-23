@@ -5,18 +5,21 @@ namespace E2;
 class App
 {
     /**
-     * Parameters
+     * Properties
      */
     private $routes;
     private $config;
     private $errors = [];
+    private $old;
     private $blade;
     private $previousUrl;
     private $dotAccessConfig;
+    private $db;
 
     private $sessionRedirect = 'e2_session_redirect';
     private $sessionErrors = 'e2_session_errors';
     private $sessionPrevious = 'e2_session_previous';
+
     
     /**
      *
@@ -33,9 +36,13 @@ class App
         date_default_timezone_set($this->config('app.timezone'));
 
         # Extract and clear errors from session if they exist
-        $this->errors = $this->getSession($this->sessionErrors);
-        $this->setSession($this->sessionErrors, null);
-        
+        $this->errors = $this->sessionGet($this->sessionErrors);
+        $this->sessionSet($this->sessionErrors, null);
+
+        # Extract and clear errors from session if they exist
+        $this->old = $this->sessionGet($this->sessionRedirect);
+        $this->sessionSet($this->sessionRedirect, null);
+
         # Load routes
         $this->routes = include DOC_ROOT.'routes.php';
 
@@ -44,9 +51,27 @@ class App
     }
 
     /**
+     * Getter method for DB instance
+     */
+    public function db()
+    {
+        if (is_null($this->db)) {
+            # Initialize Database PDO
+            $host = $this->env('DB_HOST');
+            $database = $this->env('DB_NAME');
+            $username = $this->env('DB_USERNAME');
+            $password = $this->env('DB_PASSWORD');
+            $charset = $this->env('DB_CHARSET', 'utf8mb4');
+
+            $this->db = new Database($host, $database, $usename, $password, 'utf8mb4');
+        }
+        return $this->db;
+    }
+
+    /**
      * Returns a boolean value as to whether or not there are any validation errors
      */
-    public function hasErrors()
+    public function errorsExist()
     {
         return !is_null($this->errors) and count($this->errors) > 0;
     }
@@ -71,8 +96,8 @@ class App
         # If route found...
         if (isset($this->routes[$path])) {
             # Persist previous URL; used for form validation redirection
-            $this->previousUrl = $this->getSession($this->sessionPrevious);
-            $this->setSession($this->sessionPrevious, $fullUrl);
+            $this->previousUrl = $this->sessionGet($this->sessionPrevious);
+            $this->sessionSet($this->sessionPrevious, $fullUrl);
 
             # Initialize Controller and invoke method
             $controllerName = "App\Controllers\\".$this->routes[$path][0];
@@ -108,9 +133,27 @@ class App
     }
 
     /**
+     * Gets *all* data (GET or POST) from form submission
+     */
+    public function inputAll()
+    {
+        $input = [];
+
+        foreach ($_GET as $key => $value) {
+            $input[$key] = $value;
+        }
+
+        foreach ($_POST as $key => $value) {
+            $input[$key] = $value;
+        }
+
+        return $input;
+    }
+
+    /**
      * Build a path relative to the document root
      */
-    public function path($path)
+    public function path(string $path)
     {
         return DOC_ROOT.$path;
     }
@@ -118,7 +161,7 @@ class App
     /**
     * Returns a view; makes $app available in the view
     */
-    public function view($view, $data = [])
+    public function view(string $view, $data = [])
     {
         echo $this->blade->view()->make($view)->with($data)->with(['app' => $this])->render();
     }
@@ -131,7 +174,7 @@ class App
     public function redirect($path, $data = null)
     {
         if (!is_null($data)) {
-            $this->setSession($this->sessionRedirect, $data);
+            $this->sessionSet($this->sessionRedirect, $data);
         }
 
         header('Location: '.$path);
@@ -140,19 +183,15 @@ class App
     /**
      * Retrieve data from the session after a redirect
      */
-    public function old($key, $default = null)
+    public function old(string $key, $default = null)
     {
-        $retrieved = $this->getSession($this->sessionRedirect);
-
-        $this->setSession($this->sessionRedirect, null);
-        
-        return $retrieved[$key];
+        return $this->old[$key] ?? $default;
     }
 
     /**
      * Validate an array of field names => rules
      */
-    public function validate($rules)
+    public function validate(array $rules)
     {
         $validator = new Validate($rules, $_POST);
 
@@ -162,10 +201,12 @@ class App
         if (count($errors) > 0) {
 
             # Store the errors
-            $this->setSession($this->sessionErrors, $errors);
+            $this->sessionSet($this->sessionErrors, $errors);
 
-            # Redirect to previous URL
-            header('Location: '.$this->previousUrl);
+            # Redirect to previous URL, persisting the input into the session
+            # so it can be retrieved via `old` method
+            $this->redirect($this->previousUrl, $this->inputAll());
+            
             die();
         }
     }
@@ -173,15 +214,16 @@ class App
     /**
      * Get a value from .env
      */
-    public function env($name, $default = null)
+    public function env(string $name, $default = null)
     {
-        return getenv($name) ?? $default;
+        # Note: getenv fill return `false`, not null, if a value does not exist
+        return getenv($name) != false ? getenv($name) : $default;
     }
 
     /**
     * Get a value from the config
     */
-    public function config($key, $default = null)
+    public function config(string $key, $default = null)
     {
         return $this->dotAccessConfig->get($key) ?? $default;
     }
@@ -189,11 +231,9 @@ class App
     /**
      * Set a session value
      */
-    private function setSession($key, $value)
+    public function sessionSet(string $key, $value)
     {
-        if (!isset($_SESSION)) {
-            session_start();
-        }
+        $this->sessionStart();
 
         $_SESSION[$key] = $value;
     }
@@ -201,12 +241,19 @@ class App
     /**
      * Get a session value
      */
-    private function getSession($key, $default = null)
+    public function sessionGet(string $key, $default = null)
+    {
+        $this->sessionStart();
+        return $_SESSION[$key] ?? $default;
+    }
+
+    /**
+     * Start the session if its not already started
+     */
+    private function sessionStart()
     {
         if (!isset($_SESSION)) {
             session_start();
         }
-
-        return $_SESSION[$key] ?? $default;
     }
 }

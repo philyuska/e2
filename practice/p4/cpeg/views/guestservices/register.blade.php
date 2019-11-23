@@ -8,6 +8,9 @@
 <div class='container'>
     <div class="col-md-6">
         <form class="form-inline" method='POST' action="/register-save">
+            @if($previousUrl)
+            <input type hidden id='redirect' name='redirect' value='{{ $previousUrl }}'>
+            @endif
             <div class="form-group">
                 <label for="name">Name</label>
                 <input required type="text" class="form-control" id="name" name="name" placeholder="Enter your name">
@@ -19,4 +22,8 @@
 <div class='container text-center'>
     <a href='/services'>&larr; Return to Guest Services</a>
 </div>
+
+<?php dump($_SESSION);?>
+<?php dump($app);?>
+<?php dump($previousUrl);?>
 @endsection

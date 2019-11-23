@@ -2,13 +2,25 @@
 
 @section('content')
 <div class='container'>
-    <h1>Player Info</h1>
+    <h1>Player Info <?=$patron->getName()?>
+    </h1>
 </div>
 
 <div class='container'>
     <ul class='cpeg-ul'>
-        <li>Token balance</li>
-        <li>Game history</li>
+        <li>Token balance : <?=$patron->getTokens()?>
+        </li>
+        <li>Game history
+            <ul>
+                <li>1</li>
+                <li>2</li>
+                <li>3</li>
+            </ul>
+            <?php foreach ($patron->history as $entry) {?>
+        <li><?=$entry?>
+        </li>
+        <?php }?>
+        </li>
     </ul>
 </div>
 

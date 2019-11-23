@@ -4,7 +4,7 @@ namespace App\GameObjects;
 class BlackJack
 {
     public $seats = 5;
-    private $seatsAvailable = array();
+    public $seatsAvailable = array();
     private $initalHandSize = 2;
     private $bonusWin = false;
     private $blackJack = false;
@@ -17,12 +17,20 @@ class BlackJack
     private $currentRound = 0;
     private $continueRound = false;
 
-    public function __construct()
+    public function __construct($gameSession = null)
     {
-        $this->seatsAvailable = range(0, $this->seats);
-        $this->dealer = new BlackJackDealer($name="Dealer");
-        $this->players = array();
-        $this->deck = new ShoeOfCards($this->shoeSize);
+        if ($gameSession) {
+            $this->dealer = new BlackJackDealer($playerData = $gameSession['dealer']);
+            $this->deck = new ShoeOfCards($deckProps = $gameSession['deck']);
+            foreach ($gameSession['players'] as $seat => $playerData) {
+                $this->players[$seat] = new BlackJackPlayer($playerData = $playerData);
+            }
+        } else {
+            $this->seatsAvailable = range(0, $this->seats);
+            $this->dealer = new BlackJackDealer($plaertData = null, $name="Dealer");
+            $this->players = array();
+            $this->deck = new ShoeOfCards($deckProps=null, $shoeSize=$this->shoeSize);
+        }
     }
 
     public function getInitialHandSize()
@@ -69,7 +77,7 @@ class BlackJack
         $this->dealer->newRound();
 
         if ($this->deck->getCardsRemaining() < ($this->shoeSize * 52) * $this->shoeReshuffle) {
-            $this->deck = new ShoeOfCards($this->shoeSize);
+            $this->deck = new ShoeOfCards($deckProps=null, $this->shoeSize);
         }
 
         $this->players[1]->button = true;
@@ -86,8 +94,10 @@ class BlackJack
     public function dealHand()
     {
         for ($i=1; $i<=$this->getInitialHandSize(); $i++) {
-            for ($x=1; $x<=count($this->players); $x++) {
-                $this->players[$x]->drawCard($this->deck->dealCard(), $i);
+            foreach ($this->players as $player) {
+                //for ($x=1; $x<=count($this->players); $x++) {
+                //$this->players[$x]->drawCard($this->deck->dealCard(), $i);
+                $player->drawCard($this->deck->dealCard(), $i);
             }
 
             if ($i == ($this->getInitialHandSize())) {
@@ -292,7 +302,7 @@ class BlackJack
             $this->players[$seat]->button = false;
         } else {
             $this->players[$seat]->button = false;
-            $this->players[$seat+1]->button = true;
+            ($this->players[$seat+1] ? $this->players[$seat+1]->button = true : "");
         }
     }
 

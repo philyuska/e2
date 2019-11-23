@@ -6,10 +6,22 @@ class BlackJackDealer extends BlackJackPlayer
     public $name;
     public $hole;
 
-    public function __construct(string $name="Dealer")
+    public function __construct(array $playerProps=null, string $name="Dealer")
     {
-        $this->name = $name;
-        $this->hole = array();
+        if ($playerProps) {
+            $this->seat = $playerProps['seat'];
+            $this->button = $playerProps['button'];
+            $this->hand = $playerProps['hand'];
+            $this->hole = $playerProps['hole'];
+            $this->handTotal = $playerProps['handTotal'];
+            $this->blackJack = $playerProps['blackJack'];
+            $this->handOutcome =  $playerProps['handOutcome'];
+            $this->outcome = $playerProps['outcome'];
+            $this->name = $playerProps['name'];
+        } else {
+            $this->name = $name;
+            $this->hole = array();
+        }
     }
 
     public function getName()

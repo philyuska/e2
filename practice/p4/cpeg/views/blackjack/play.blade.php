@@ -3,7 +3,7 @@
 @section('content')
 
 <div class='container'>
-    <h1>Blackjack</h1>
+    <h1>Blackjack Play</h1>
     <h2>Instructions</h2>
     <ul class='cpeg-ul'>
         <li>Attempt to beat the dealer by getting a hand total closest to 21 without going over.</li>
@@ -17,8 +17,8 @@
 </div>
 
 <div class='container'>
-    <form class="form-inline" method='POST' action="/blackjack/takeseat">
-        <button class='button_submit' type='submit'>Take A Seat</button>
+    <form class="form-inline" method='POST' action="/blackjack/leaveseat">
+        <button class='button_submit' type='submit'>Leave Table</button>
     </form>
 </div>
 
@@ -178,6 +178,6 @@
 
     </div>
 </div>
-<?php dump($game);?>
+<?php //dump($game);?>
 <?php //dump($_SESSION);?>
 @endsection
