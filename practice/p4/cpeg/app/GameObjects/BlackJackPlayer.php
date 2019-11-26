@@ -52,7 +52,7 @@ class BlackJackPlayer
         $this->handTotal = 0;
         $this->blackJack = false;
         $this->outcome = null;
-        $this->ante = 0;
+        // $this->ante = 0;
         $this->payout = null;
         foreach (array_keys($this->handOutcome) as $outcome) {
             $this->handOutcome[$outcome] = false;

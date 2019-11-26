@@ -3,7 +3,7 @@
 @section('content')
 
 <div class='container'>
-    <h1>Blackjack Play</h1>
+    <h1>Blackjack Ante</h1>
     <h2>Instructions</h2>
     <ul class='cpeg-ul'>
         <li>Attempt to beat the dealer by getting a hand total closest to 21 without going over.</li>
@@ -17,11 +17,115 @@
 </div>
 
 <div class='container'>
-    <form class="form-inline" method='POST' action="/blackjack/takeseat">
-        <button class='button_submit' type='submit'>Take A Seat</button>
+    <form class="form-inline" method='POST' action="/blackjack/leavetable">
+        <button class='button_submit' type='submit'>Leave Table</button>
     </form>
 </div>
 
+
+@switch($scene)
+@case("collectwager")
+
+<div class='row row-no-gutters'>
+    <div class='col-lg-3'>
+    </div>
+    <div class='col-lg-6'>
+        <div class='player-container'>
+            Dealer
+        </div>
+    </div>
+    <div class='col-lg-3'>
+    </div>
+</div>
+<div class='row row-no-gutters'>
+    <div class='col-lg-3'>
+    </div>
+    <div class='col-lg-6'>
+        <div class='dealer-container'>
+            <div class='card'>
+                <span class='glyph spades'>&#x1F0A1</span>
+
+                <div class='card-description'>
+                    Ace of Spades
+                </div>
+            </div>
+            <div class='card'>
+                <span class='glyph spades'>&#x1F0AB</span>
+
+                <div class='card-description'>
+                    Jack of Spades
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class='col-lg-3'>
+    </div>
+</div>
+
+<div class='container'>
+
+    <div class='row'>
+
+        @foreach ($game->players as $seat => $player)
+
+        @if ($player->isPatron())
+        <div class='col-lg-1 text-center playerButton'>
+            {{ $seat }}
+        </div>
+        <div class='col-lg-4 playerButton'>
+            <div class='row'>
+                <p><strong> {{ $player->getName() }}</strong>
+                    has {{ $player->getTokens() }} tokens
+                </p>
+            </div>
+        </div>
+
+        @else
+
+        <div class='col-lg-1 text-center'>
+            {{ $seat }}
+        </div>
+        <div class='col-lg-4'>
+            <div class='row'>
+                <p><strong> {{ $player->getName() }}</strong>
+                </p>
+            </div>
+        </div>
+        @endif
+
+        @if ($player->isPatron())
+        <div class='col-lg-7 playerButton'>
+
+            @if($app->errorsExist())
+            <ul class='error alert alert-danger'>
+                @foreach($app->errors() as $error)
+                <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            @endif
+            <form class='form-inline' method='POST' action='/blackjack/ante-collect'>
+                <input type='hidden' value='{{ $seat }}' id='seat' name='seat'>
+                <div class="form-group">
+                    <label for='wager'>Wager</label>
+                    <input type='text' class='form-control' value='1' id='wager' name='wager'>
+                </div>
+                <button type='submit' class='btn btn-outline-danger'>Your Wager</button>
+            </form>
+        </div>
+
+        @else
+
+        <div class='col-lg-7'>
+        </div>
+        @endif
+        @endforeach
+
+    </div>
+</div>
+
+@break
+
+@case("default")
 
 <div class='container'>
 
@@ -178,6 +282,14 @@
 
     </div>
 </div>
+
+@break
+
+@default
+<span> default case reached </span>
+@break
+@endswitch
+
 <?php dump($game);?>
 <?php //dump($_SESSION);?>
 @endsection

@@ -22,7 +22,6 @@ class BlackJackController extends Controller implements JsonSerializable
     public function index()
     {
         $this->demo();
-        //return $this->app->view('blackjack.index', ['game' => $this->game, 'patron' => $this->patron]);
     }
 
     public function demo()
@@ -66,53 +65,75 @@ class BlackJackController extends Controller implements JsonSerializable
         return $this->app->view('blackjack.index', ['game' => $this->game]);
     }
 
-    public function takeSeats()
+    public function takeSeat()
     {
         $this->game = new BlackJack($this->gameLoadSession());
         $this->patron = new Patron();
 
-        if (! $this->patron->isRegistered()) {
+        if ($this->patron->isRegistered()) {
+            if ($this->game->seatsAvailable) {
+                $names = $this->getRandomNames();
+
+                $player = new BlackJackPlayer($playerProps=null, $this->patron, null);
+                $this->game->seatThisPlayer($player, $seat=1);
+
+                for ($x=1; $x< $this->game->seats; $x++) {
+                    $playerName = array_shift($names);
+                    $player = new BlackJackPlayer($playerProps=null, $patron=null, $playerName = $playerName);
+                    $this->game->seatThisPlayer($player);
+                }
+            }
+
+            //$this->playRound();
+            $this->gameSaveSession();
+            $this->app->redirect('/blackjack/ante');
+        } else {
             $data['previousUrl'] = "/blackjack/takeseat";
             $this->app->redirect('/register', $data);
         }
-
-        if ($this->game->seatsAvailable) {
-            $names = $this->getRandomNames();
-
-            $player = new BlackJackPlayer($playerProps=null, $this->patron, null);
-            $this->game->seatThisPlayer($player, 1);
-
-
-            // $demo = ($this->patron->getName() ? false : true);
-
-            // if ($demo) {
-            //     $playerName = array_shift($names);
-            //     $player = new BlackJackPlayer($playerProps=null, $patron=null, $playerName = $playerName);
-            //     $this->game->seatThisPlayer($player);
-            // } else {
-            //     $player = new BlackJackPlayer($playerProps=null, $this->patron, null);
-            //     $this->game->seatThisPlayer($player, 1);
-            // }
-
-            for ($x=1; $x< $this->game->seats; $x++) {
-                $playerName = array_shift($names);
-                $player = new BlackJackPlayer($playerProps=null, $patron=null, $playerName = $playerName);
-                $this->game->seatThisPlayer($player);
-            }
-        }
-
-        $this->playRound();
     }
 
-    public function playRound()
+    public function leaveTable()
+    {
+        $this->game = new BlackJack($this->gameLoadSession());
+        $this->destroySession();
+        $this->app->redirect('/blackjack');
+    }
+
+    public function ante()
+    {
+        $this->game = new BlackJack($this->gameLoadSession());
+        return $this->app->view('blackjack.ante', ['game' => $this->game, 'scene' => "collectwager"]);
+    }
+    public function anteCollect()
+    {
+        $this->game = new BlackJack($this->gameLoadSession());
+        $this->app->validate([
+            'wager' => 'required|min:1|max:' . $this->game->players[$this->app->input('seat')]->getTokens(),
+        ]);
+
+        $wager = $this->app->input('wager');
+        $this->game->players[$this->app->input('seat')]->collectAnte($tokens=$wager);
+
+        $this->gameSaveSession();
+        $this->app->redirect('/blackjack/play');
+    }
+
+    public function gameOver()
+    {
+        $this->game = new BlackJack($this->gameLoadSession());
+        return $this->app->view('blackjack.gameover', ['game' => $this->game, 'scene' => "default"]);
+    }
+
+    public function play()
+    {
+        $this->game = new BlackJack($this->gameLoadSession());
+        $this->dealHand();
+    }
+
+    public function dealHand()
     {
         $this->game->newRound();
-
-        foreach ($this->game->players as $player) {
-            if ($player->isPatron()) {
-                $player->collectAnte();
-            }
-        }
 
         $this->game->dealHand();
 
@@ -122,7 +143,30 @@ class BlackJackController extends Controller implements JsonSerializable
             foreach ($this->game->players as $player) {
                 if (($player->isPatron()) && $player->hasButton()) {
                     $this->gameSaveSession();
-                    return $this->app->view('blackjack.index', ['game' => $this->game]);
+                    return $this->app->view('blackjack.play', ['game' => $this->game]);
+                } elseif ($player->hasButton()) {
+                    $this->autoPlayHand($player);
+                }
+            }
+        } elseif ($this->game->getBlackJack()) {
+            $this->game->dealer->showHand();
+        }
+
+        $this->gameSaveSession();
+
+        $this->game->payoutPlayers();
+        $this->app->redirect('/blackjack/gameover');
+    }
+    
+    public function playRound()
+    {
+        $this->game = new BlackJack($this->gameLoadSession());
+
+        if ($this->game->continueRound()) {
+            foreach ($this->game->players as $player) {
+                if (($player->isPatron()) && $player->hasButton()) {
+                    $this->gameSaveSession();
+                    return $this->app->view('blackjack.play', ['game' => $this->game]);
                 } elseif ($player->hasButton()) {
                     $this->autoPlayHand($player);
                 }
@@ -141,7 +185,7 @@ class BlackJackController extends Controller implements JsonSerializable
         $this->gameSaveSession();
 
         $this->game->payoutPlayers();
-        return $this->app->view('blackjack.index', ['game' => $this->game]);
+        $this->app->redirect('/blackjack/play');
     }
 
     public function continuePlay()
@@ -162,12 +206,24 @@ class BlackJackController extends Controller implements JsonSerializable
 
         $this->game->payoutPlayers();
 
+        $this->gameSaveSession();
+
+        return($this->app->redirect('/blackjack/gameover'));
+
         $this->destroySession();
         return $this->app->view('blackjack.play', ['game' => $this->game]);
     }
 
+    public function choose()
+    {
+        $this->game = new BlackJack($this->gameLoadSession());
+        // dd($this->app);
+        $this->playHand();
+    }
+
     public function playHand()
     {
+        $this->game = new BlackJack($this->gameLoadSession());
         $choice = $this->app->input('choice');
         $seat = $this->app->input('seat');
 
@@ -176,11 +232,19 @@ class BlackJackController extends Controller implements JsonSerializable
         if ($choice == 'hit') {
             $player->drawCard($this->game->deck->dealCard());
             $this->gameSaveSession();
-            return $this->app->view('blackjack.play', ['game' => $this->game]);
+            //return $this->app->view('blackjack.play', ['game' => $this->game, 'scene' => 'default']);
+
+            return $this->app->redirect('/blackjack/turn');
         } else {
             $this->game->passButton($player->seat);
             $this->continuePlay();
         }
+    }
+
+    public function takeTurn()
+    {
+        $this->game = new BlackJack($this->gameLoadSession());
+        return $this->app->view('blackjack.turn', ['game' => $this->game, 'scene' => "default"]);
     }
 
     private function autoPlayHand(BlackJackPlayer $player)

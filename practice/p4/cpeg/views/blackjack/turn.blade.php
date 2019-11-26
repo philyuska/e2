@@ -3,7 +3,7 @@
 @section('content')
 
 <div class='container'>
-    <h1>Blackjack Play</h1>
+    <h1>Blackjack Turn</h1>
     <h2>Instructions</h2>
     <ul class='cpeg-ul'>
         <li>Attempt to beat the dealer by getting a hand total closest to 21 without going over.</li>
