@@ -33,11 +33,11 @@
         <div class='col-lg-6'>
             <div class='dealer-container'>
                 @foreach ($game->dealer->hand as $card)
-                <div class='card'>
+                <div class='playingcard'>
                     <span
                         class='glyph <?=$card['suit']?>'><?=$card['glyph']?></span>
 
-                    <div class='card-description'>
+                    <div class='playingcard-description'>
                         {{ $card["name"] }}
                     </div>
                 </div>
@@ -67,9 +67,9 @@
         <div class='col-lg-6'>
             <div class='dealer-container'>
                 @foreach ($game->dealer->hand as $card)
-                <div class='card'>
+                <div class='playingcard'>
                     <span class='glyph {{ $card["suit"] }}'> {!! $card['glyph'] !!}</span>
-                    <div class='card-description'>
+                    <div class='playingcard-description'>
                         {{ $card['name'] }}
                     </div>
                 </div>
@@ -178,6 +178,5 @@
 
     </div>
 </div>
-<?php dump($game);?>
-<?php //dump($_SESSION);?>
+
 @endsection

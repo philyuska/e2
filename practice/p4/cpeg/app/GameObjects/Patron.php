@@ -44,16 +44,19 @@ class Patron implements JsonSerializable
     public function addTokens(int $tokens)
     {
         $this->tokens = $this->tokens + $tokens;
+        $this->saveSession();
     }
 
     public function subTokens(int $tokens)
     {
         $this->tokens = $this->tokens - $tokens;
+        $this->saveSession();
     }
 
     public function setHistory(string $entry)
     {
         $this->history[] = $entry;
+        $this->saveSession();
     }
 
     public function saveSession()

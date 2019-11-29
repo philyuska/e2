@@ -13,7 +13,6 @@ return [
     '/blackjack/leavetable' => ['BlackJackController', 'leaveTable'],
     '/blackjack/ante' => ['BlackJackController', 'ante'],
     '/blackjack/ante-collect' => ['BlackJackController', 'anteCollect'],
-    '/blackjack/play' => ['BlackJackController', 'play'],
     '/blackjack/choice' => ['BlackJackController', 'playHand'],
     '/blackjack/turn' => ['BlackJackController', 'takeTurn'],
     '/blackjack/gameover' => ['BlackJackController', 'gameOver'],

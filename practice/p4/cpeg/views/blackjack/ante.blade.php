@@ -12,7 +12,6 @@
         <li>The dealer will stand with 17, and if thier hand total is greater than 21 "bust", you win.</li>
         <li>Advice is offered on whether to Hit or Stay but the choice is yours.If your hand total is greater than 21
             "bust", you lose.</li>
-        <li>Press the Take A Seat button to play.</li>
     </ul>
 </div>
 
@@ -42,17 +41,17 @@
     </div>
     <div class='col-lg-6'>
         <div class='dealer-container'>
-            <div class='card'>
+            <div class='playingcard'>
                 <span class='glyph spades'>&#x1F0A1</span>
 
-                <div class='card-description'>
+                <div class='playingcard-description'>
                     Ace of Spades
                 </div>
             </div>
-            <div class='card'>
+            <div class='playingcard'>
                 <span class='glyph spades'>&#x1F0AB</span>
 
-                <div class='card-description'>
+                <div class='playingcard-description'>
                     Jack of Spades
                 </div>
             </div>
@@ -290,6 +289,5 @@
 @break
 @endswitch
 
-<?php dump($game);?>
-<?php //dump($_SESSION);?>
+
 @endsection

@@ -189,12 +189,13 @@ class BlackJack
         }
 
         if ($this->bonusWin) {
+            $this->continueRound = false;
             foreach ($this->players as $player) {
                 $player->handOutcome['bonusWin'] = true;
                 $player->outcome = "Win, yahPoo bonus";
             }
-            $this->continueRound = false;
         } elseif ($this->blackJack) {
+            $this->continueRound = false;
             foreach ($this->players as $player) {
                 if ($player->handTotal() == 21) {
                     $player->blackJack = true;
@@ -205,7 +206,6 @@ class BlackJack
                     $player->outcome = "Lost, dealer blackjack";
                 }
             }
-            $this->continueRound = false;
         } else {
             $this->continueRound = true;
         }
@@ -218,6 +218,7 @@ class BlackJack
                 if ($player->handTotal() > 21) {
                     $player->handOutcome['playerLoss'] = true;
                     $player->outcome = "Bust";
+                    $player->blackJack = false;
                 } elseif ($player->handTotal() <= 21) {
                     $player->handOutcome['playerWin'] = true;
                     $player->outcome = "Win, dealer bust";
@@ -228,12 +229,13 @@ class BlackJack
             }
         } else {
             foreach ($this->players as $player) {
-                if ($player->hasBlackJack()) {
-                    $player->handOutcome['playerWin'] = true;
-                    $player->outcome = "Win, BlackJack";
-                } elseif ($player->handTotal() > 21) {
+                if ($player->handTotal() > 21) {
                     $player->handOutcome['playerLoss'] = true;
                     $player->outcome = "Bust";
+                    $player->blackJack = false;
+                } elseif ($player->hasBlackJack()) {
+                    $player->handOutcome['playerWin'] = true;
+                    $player->outcome = "Win, BlackJack";
                 } elseif ($player->handTotal() == $this->dealer->handTotal()) {
                     $player->handOutcome['playerPush'] = true;
                     $player->outcome = "Push";
@@ -273,6 +275,8 @@ class BlackJack
                 if ($player->handOutcome['playerPush']) {
                     $player->payout($playerAnte);
                 }
+
+                $player->history();
             }
         }
     }

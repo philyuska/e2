@@ -164,6 +164,10 @@ class BlackJackPlayer
         }
     }
 
+    public function history()
+    {
+        $this->patron->setHistory($this->handSummary());
+    }
 
     public function handSummary()
     {

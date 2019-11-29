@@ -76,7 +76,7 @@ body
   background-color: blue;
 }
 
-.card
+.playingcard
 {
   border: 1px solid;
   box-shadow: 0 4px 4px 0;
@@ -87,8 +87,7 @@ body
   border-radius: 0px; 
 }
 
-
-.card-description
+.playingcard-description
 {
   padding-top: 0px;
   padding-bottom: 4px;
@@ -97,7 +96,6 @@ body
   width: 110px;
   white-space: nowrap;
 }
-
 
 .glyph
 {

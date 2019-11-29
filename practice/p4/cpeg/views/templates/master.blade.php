@@ -13,6 +13,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
+
+
+
     @yield('head')
 
 </head>
@@ -28,21 +31,21 @@
 
             <ul class='navbar-nav'>
                 <li
-                    class='nav-item <?=($menuItem_selected=="blackjack" ? "active" : "")?>'>
+                    class='nav-item <?=(strstr($menuItem_selected, "blackjack") ? "active" : "")?>'>
                     <a class='nav-link' href='/blackjack'>Black Jack</a>
                 </li>
                 <li
-                    class='nav-item <?=($menuItem_selected=="casinowar" ? "active" : "")?>'>
+                    class='nav-item <?=(strstr($menuItem_selected, "casinowar") ? "active" : "")?>'>
                     <a class='nav-link' href='/casinowar'>Casino War</a>
                 </li>
             </ul>
             <ul class="navbar-nav ml-auto">
                 <li
-                    class='nav-item <?=($menuItem_selected=="about" ? "active" : "")?>'>
+                    class='nav-item <?=(strstr($menuItem_selected, "about") ? "active" : "")?>'>
                     <a class='nav-link' href='/about'>About</a>
                 </li>
                 <li
-                    class='nav-item <?=((($menuItem_selected=="services") or ($menuItem_selected=="playerinfo") or ($menuItem_selected=="register")) ? "active" : "")?>'>
+                    class='nav-item <?=(((strstr($menuItem_selected, "services") or (strstr($menuItem_selected, "playerinfo"))) or (strstr($menuItem_selected, "register"))) ? "active" : "")?>'>
                     <a class='nav-link' href='/services'>Guest Services</a>
                 </li>
             </ul>
@@ -56,6 +59,9 @@
     </footer>
 
     @yield('body')
+
+    <?php //dump($game);?>
+    <?php //dump($_SESSION);?>
 
 </body>
 
