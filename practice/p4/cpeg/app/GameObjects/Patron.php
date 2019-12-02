@@ -126,11 +126,4 @@ class Patron implements JsonSerializable
             unset($_SESSION[$key]);
         }
     }
-
-    public function debug()
-    {
-        print "<pre>";
-        print_r($this);
-        print "</pre>";
-    }
 }

@@ -16,20 +16,23 @@ class CasinoWarPlayer
     private $payout;
     private $casinoWar;
 
-    public function __construct(Patron $patron=null, $playerName="Anonymous")
+    public function __construct(array $playerProps = null, Patron $patron=null, $playerName="Anonymous")
     {
-        $this->seat = null;
-        $this->button = false;
-        $this->hand = array();
-        $this->warHand = array();
-        $this->ante = 0;
-        $this->handTotal = 0;
-        $this->handOutcome =  array('bonusWin' => false,'playerWin' => false, 'playerLoss' => false );
-        $this->outcome = null;
-        $this->payout = null;
-        $this->casinoWar = false;
-        $this->patron = $patron;
-        $this->name = ($patron ? null : $playerName);
+        if ($playerProps) {
+        } else {
+            $this->seat = null;
+            $this->button = false;
+            $this->hand = array();
+            $this->warHand = array();
+            $this->ante = 0;
+            $this->handTotal = 0;
+            $this->handOutcome =  array('bonusWin' => false,'playerWin' => false, 'playerLoss' => false );
+            $this->outcome = null;
+            $this->payout = null;
+            $this->casinoWar = false;
+            $this->patron = $patron;
+            $this->name = ($patron ? null : $playerName);
+        }
     }
 
     public function newRound()

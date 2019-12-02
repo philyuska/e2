@@ -3,7 +3,7 @@ namespace App\GameObjects;
 
 class CasinoWar
 {
-    private $maxSeats = 5;
+    public $seats = 5;
     private $initalHandSize = 1;
     private $casinoWar = false;
     private $gameOver = false;
@@ -15,15 +15,22 @@ class CasinoWar
     private $currentRound = 0;
     private $continueRound = false;
 
-    public function __construct(int $seats=null)
+    public function __construct($gameSession = null)
     {
-        $this->seats = ($seats ? $seats : $this->maxSeats);
-        $this->seatsAvailable = range(0, $this->seats);
-        $this->dealer = new CasinoWarPlayer($patron=null, $name="Dealer");
-        $this->players = array();
-        $this->deck = new ShoeOfCards($this->shoeSize);
+        if ($gameSession) {
+        } else {
+            $this->seatsAvailable = range(0, $this->seats);
+            $this->dealer = new CasinoWarPlayer($playerData = null, $patron=null, $name="Dealer");
+            $this->players = array();
+            $this->deck = new ShoeOfCards($deckProps = null, $this->shoeSize);
+        }
     }
 
+    public function getSeatsAvailable()
+    {
+        return ($this->seatsAvailable ? count($this->seatsAvailable) - 1 : 0);
+    }
+    
     public function getInitialHandSize()
     {
         return $this->initalHandSize;

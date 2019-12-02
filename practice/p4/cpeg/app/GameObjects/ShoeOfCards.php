@@ -100,6 +100,19 @@ class ShoeOfCards
         return count($this->deck);
     }
 
+    public function getCardBack()
+    {
+        $cardback = array(
+            'name' => 'cardback',
+            'value' => "",
+            'suit' => "",
+            'rank' => "",
+            'glyph' => '&#x1f0a0',
+            'emoji' => "",
+        );
+        return $cardback['glyph'];
+    }
+
     public function debug()
     {
         print "<pre>";

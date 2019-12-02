@@ -17,6 +17,7 @@ class BlackJackPlayer
     public $ante;
     public $payout;
 
+
     public function __construct(array $playerProps = null, Patron $patron=null, $playerName="Anonymous")
     {
         if ($playerProps) {
@@ -45,6 +46,7 @@ class BlackJackPlayer
             $this->name = ($patron ? null : $playerName);
         }
     }
+
 
     public function newRound()
     {
@@ -125,13 +127,11 @@ class BlackJackPlayer
         return $this->handTotal;
     }
 
-    public function collectAnte(int $tokens = 1)
+    public function collectAnte(int $tokens)
     {
         if ($this->isPatron()) {
-            if ($tokens < $this->patron->getTokens()) {
-                $this->patron->subTokens($tokens);
-                $this->ante = $tokens;
-            }
+            $this->patron->subTokens($tokens);
+            $this->ante = $tokens;
         }
     }
 

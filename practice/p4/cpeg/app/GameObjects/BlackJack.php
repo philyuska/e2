@@ -4,17 +4,14 @@ namespace App\GameObjects;
 class BlackJack
 {
     public $seats = 5;
-    public $seatsAvailable = array();
+    private $seatsAvailable;
     private $initalHandSize = 2;
     private $bonusWin = false;
     private $blackJack = false;
-    private $gameOver = false;
-    private $roundOver = false;
     
     private $shoeSize = 6;
     private $shoeReshuffle = .25;
 
-    private $currentRound = 0;
     private $continueRound = false;
 
     public function __construct($gameSession = null)
@@ -33,6 +30,11 @@ class BlackJack
         }
     }
 
+    public function getSeatsAvailable()
+    {
+        return ($this->seatsAvailable ? count($this->seatsAvailable) - 1 : 0);
+    }
+
     public function getInitialHandSize()
     {
         return $this->initalHandSize;
@@ -48,11 +50,6 @@ class BlackJack
         return ($this->bonusWin);
     }
 
-    public function setRoundOver()
-    {
-        $this->roundOver = true;
-    }
-
     public function setBlackJack()
     {
         $this->blackJack = true;
@@ -63,14 +60,8 @@ class BlackJack
         return $this->blackJack;
     }
 
-    public function continueRound()
-    {
-        return $this->continueRound;
-    }
-
     public function newRound()
     {
-        $this->currentRound++;
         $this->continueRound = false;
         $this->bonusWin = false;
         $this->blackJack = false;
@@ -86,17 +77,15 @@ class BlackJack
         }
     }
 
-    public function getCurrentRound()
+    public function continueRound()
     {
-        return $this->currentRound;
+        return $this->continueRound;
     }
 
     public function dealHand()
     {
         for ($i=1; $i<=$this->getInitialHandSize(); $i++) {
             foreach ($this->players as $player) {
-                //for ($x=1; $x<=count($this->players); $x++) {
-                //$this->players[$x]->drawCard($this->deck->dealCard(), $i);
                 $player->drawCard($this->deck->dealCard(), $i);
             }
 
@@ -120,67 +109,10 @@ class BlackJack
             $this->setBlackJack();
         }
 
-        return ($this->determinePeekOutcome());
+        return ($this->peekHandOutcome());
     }
 
-
-    public function shouldHit(BlackJackPlayer $player)
-    {
-        $strategy = array(
-            'hard' => array(
-                2	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                3	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                4	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                5	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                6	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                7	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                8	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                9	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                10	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                11	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                12	=> array( 1,2,3,7,8,9,10 ),
-                13	=> array( 1,7,8,9,10 ),
-                14	=> array( 1,7,8,9,10 ),
-                15	=> array( 1,7,8,9,10 ),
-                16	=> array( 1,7,8,9,10 ),
-                17	=> array(),
-                18	=> array(),
-                19	=> array(),
-                20	=> array(),
-                21	=> array(),
-            ),
-            'soft' => array(
-                13	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                14	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                15	=> array( 2,3,4,5,6,7,8,9,10 ),
-                16	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                17	=> array( 1,2,3,4,5,6,7,8,9,10 ),
-                18	=> array( 1,9,10 ),
-                19	=> array(),
-                20	=> array(),
-                21	=> array(),
-            ),
-        );
-    
-        if ($player->hand[1]['value'] == 1) {
-            if ($player->handTotal() > 12) {
-                if (in_array($player->hand[1]['value'], $strategy['soft'][ $player->handTotal() ])) {
-                    return true;
-                }
-            }
-        }
-        
-        if ($player->handTotal < 17) {
-            if (in_array($player->hand[1]['value'], $strategy['hard'][ $player->handTotal() ])) {
-                return true;
-            }
-        }
-    
-        return false;
-    }
-
-
-    public function determinePeekOutcome()
+    public function peekHandOutcome()
     {
         foreach ($this->players as $player) {
             if ($player->handTotal() == 21) {
@@ -310,10 +242,58 @@ class BlackJack
         }
     }
 
-    public function debug()
+    public function shouldHit(BlackJackPlayer $player)
     {
-        print "<pre>";
-        print_r($this);
-        print "</pre>";
+        $strategy = array(
+            'hard' => array(
+                2	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                3	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                4	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                5	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                6	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                7	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                8	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                9	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                10	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                11	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                12	=> array( 1,2,3,7,8,9,10 ),
+                13	=> array( 1,7,8,9,10 ),
+                14	=> array( 1,7,8,9,10 ),
+                15	=> array( 1,7,8,9,10 ),
+                16	=> array( 1,7,8,9,10 ),
+                17	=> array(),
+                18	=> array(),
+                19	=> array(),
+                20	=> array(),
+                21	=> array(),
+            ),
+            'soft' => array(
+                13	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                14	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                15	=> array( 2,3,4,5,6,7,8,9,10 ),
+                16	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                17	=> array( 1,2,3,4,5,6,7,8,9,10 ),
+                18	=> array( 1,9,10 ),
+                19	=> array(),
+                20	=> array(),
+                21	=> array(),
+            ),
+        );
+    
+        if ($player->hand[1]['value'] == 1) {
+            if ($player->handTotal() > 12) {
+                if (in_array($player->hand[1]['value'], $strategy['soft'][ $player->handTotal() ])) {
+                    return true;
+                }
+            }
+        }
+        
+        if ($player->handTotal < 17) {
+            if (in_array($player->hand[1]['value'], $strategy['hard'][ $player->handTotal() ])) {
+                return true;
+            }
+        }
+    
+        return false;
     }
 }

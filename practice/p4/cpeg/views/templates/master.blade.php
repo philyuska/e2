@@ -60,8 +60,8 @@
 
     @yield('body')
 
-    <?php //dump($game);?>
-    <?php //dump($_SESSION);?>
+    <?php dump($game);?>
+    <?php dump($_SESSION);?>
 
 </body>
 

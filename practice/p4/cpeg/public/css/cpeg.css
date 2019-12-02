@@ -49,8 +49,14 @@ body
   margin-right: 5px;
 
 }
-
-.player-container, .dealer-container
+.dealer-container
+{
+  margin-top: 10px;
+  padding-top: 10px;
+  margin-bottom: 10px;
+  background-color: #e6ffe6
+}
+.player-container
 {
   margin-top: 10px;
   margin-bottom: 10px;
@@ -84,7 +90,8 @@ body
   height: 130px;
   float: left;
   text-align: center; 
-  border-radius: 0px; 
+  border-radius: 0px;
+  background-color: whitesmoke;
 }
 
 .playingcard-description
