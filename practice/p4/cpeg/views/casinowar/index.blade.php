@@ -29,7 +29,7 @@
 
 @if (! $scene )
 <div class='container'>
-    <form class="form-inline" method='POST' action="/casinowar/?action=takeseat">
+    <form class="form-inline" method='POST' action="/casinowar/takeseat">
         <button class='button_submit' type='submit'>Take A Seat</button>
     </form>
 </div>
@@ -90,26 +90,25 @@
 <div class='container'>
     @foreach ($game->players as $seat => $player)
     @if (! $player->isPatron())
-    <div class='row'>
+    <div class='row seat'>
 
         <div class='col-lg-1 text-center'>
-            {{ $seat }}
+            seat {{ $seat }}
         </div>
         <div class='col-lg-2'>
         </div>
 
         @if ($player->goneToWar())
         <div class='col-lg-4'>
-
             <div class='row'>
-                <div class='player-container'>
-                    <p><strong>{{ $player->getName() }} has
-                            {!! $player->getLastCard() !!}
-                            WAR
-                            <br />
-                        </strong>
-                    </p>
-                </div>
+
+                <p><strong>{{ $player->getName() }} has
+                        {!! $player->getLastCard() !!}
+                        WAR
+                        <br />
+                    </strong>
+                </p>
+
             </div>
             <div class='row'>
                 <div class='col-md-6'>
@@ -120,14 +119,12 @@
                 </div>
             </div>
             <div class='row'>
-                <?php foreach (array_keys($player->warHand) as $x) { ?>
                 <div class='col-md-6'>
-                    <?=$game->dealer->warHand[$x]['emoji'];?>
+                    {!! $game->dealer->warHandSummary($player->seat) !!}
                 </div>
                 <div class='col-md-6'>
-                    <?=$player->warHand[$x]['emoji'];?>
+                    {!! $player->warHandSummary() !!}
                 </div>
-                <?php } ?>
                 <div class='col-md-6'>
                 </div>
                 <div class='col-md-6'>
@@ -138,7 +135,7 @@
         @else
 
         <div class='col-lg-4'>
-            <div class='player-container'>
+            <div class='row'>
                 <p><strong>{{ $player->getName() }}</strong> has a
                     <strong>{!! $player->getLastCard() !!}</strong>
                     {{ $player->getOutcome() }}
@@ -148,10 +145,10 @@
         @endif
     </div>
     @else
-    <div class='row'>
+    <div class='row seat playerButton'>
 
         <div class='col-lg-1 text-center playerButton'>
-            {{ $seat }}
+            seat {{ $seat }}
         </div>
         <div class='col-lg-2 playerButton'>
             <div class='row no-gutters'>
@@ -170,6 +167,43 @@
                 Tokens won {{ ( $player->payout ? $player->payout : "0") }}
             </div>
             @endif
+            @endif
+
+        </div>
+
+        <div class='col-lg-4 playerButton'>
+            <div class='row'>
+                <p><strong>{{ $player->getName() }}</strong> has a
+                    <strong>{!! $player->getLastCard() !!}
+                        {{ $player->goneToWar() ? "WAR" : $player->getOutcome() }}</strong>
+                </p>
+            </div>
+
+            @if ($player->goneToWar())
+
+            <div class='row'>
+                <div class='col-md-6'>
+                    <strong>{{ $game->dealer->getName() }}</strong>
+                </div>
+                <div class='col-md-6'>
+                    <strong>{{ $player->getName() }}</strong>
+                </div>
+            </div>
+
+            <div class='row'>
+                <div class='col-md-6'>
+                    {!! $game->dealer->warHandSummary($player->seat) !!}
+                </div>
+                <div class='col-md-6'>
+                    {!! $player->warHandSummary() !!}
+                </div>
+                <div class='col-md-6'>
+                </div>
+                <div class='col-md-6'>
+                    <strong>{{ $player->getOutcome() }}</strong>
+                </div>
+            </div>
+
             @endif
 
         </div>
@@ -204,54 +238,7 @@
 
         @endif
 
-        @if ($player->goneToWar())
-        <div class='col-lg-4'>
 
-            <div class='row'>
-                <div class='player-container'>
-                    <p><strong>{{ $player->getName() }} has
-                            {!! $player->getLastCard() !!}
-                            WAR
-                            <br />
-                        </strong>
-                    </p>
-                </div>
-            </div>
-            <div class='row'>
-                <div class='col-md-6'>
-                    <strong>{{ $game->dealer->getName() }}</strong>
-                </div>
-                <div class='col-md-6'>
-                    <strong>{{ $player->getName() }}</strong>
-                </div>
-            </div>
-            <div class='row'>
-                <?php foreach (array_keys($player->warHand) as $x) { ?>
-                <div class='col-md-6'>
-                    <?=$game->dealer->warHand[$x]['emoji'];?>
-                </div>
-                <div class='col-md-6'>
-                    <?=$player->warHand[$x]['emoji'];?>
-                </div>
-                <?php } ?>
-                <div class='col-md-6'>
-                </div>
-                <div class='col-md-6'>
-                    <strong>{{ $player->getOutcome() }}</strong>
-                </div>
-            </div>
-        </div>
-        @else
-
-        <div class='col-lg-4'>
-            <div class='player-container'>
-                <p><strong>{{ $player->getName() }}</strong> has a
-                    <strong>{!! $player->getLastCard() !!}</strong>
-                    {{ $player->getOutcome() }}
-                </p>
-            </div>
-        </div>
-        @endif
     </div>
     @endif
     @endforeach

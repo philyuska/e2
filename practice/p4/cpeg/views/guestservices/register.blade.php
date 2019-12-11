@@ -7,7 +7,7 @@
 
 <div class='container'>
     <div class="col-md-6">
-        <form class='form-inline' method='POST' action='/register-save'>
+        <form class='form-inline' method='POST' action='/register-new'>
             @if($previousUrl)
             <input type hidden id='redirect' name='redirect' value='{{ $previousUrl }}'>
             @endif

@@ -45,7 +45,7 @@
                     <a class='nav-link' href='/about'>About</a>
                 </li>
                 <li
-                    class='nav-item <?=(((strstr($menuItem_selected, "services") or (strstr($menuItem_selected, "playerinfo"))) or (strstr($menuItem_selected, "register"))) ? "active" : "")?>'>
+                    class='nav-item <?=(((strstr($menuItem_selected, "services") or (strstr($menuItem_selected, "patron"))) or (strstr($menuItem_selected, "register"))) ? "active" : "")?>'>
                     <a class='nav-link' href='/services'>Guest Services</a>
                 </li>
             </ul>
@@ -60,7 +60,7 @@
 
     @yield('body')
 
-    <?php dump($game);?>
+    <?php (isset($game) ? dump($game) : "");?>
     <?php dump($_SESSION);?>
 
 </body>

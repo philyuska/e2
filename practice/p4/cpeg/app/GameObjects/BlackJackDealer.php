@@ -12,6 +12,7 @@ class BlackJackDealer extends BlackJackPlayer
             $this->seat = $playerProps['seat'];
             $this->button = $playerProps['button'];
             $this->hand = $playerProps['hand'];
+            $this->handHistory = $playerProps['handHistory'];
             $this->hole = $playerProps['hole'];
             $this->handTotal = $playerProps['handTotal'];
             $this->blackJack = $playerProps['blackJack'];
@@ -21,6 +22,7 @@ class BlackJackDealer extends BlackJackPlayer
         } else {
             $this->name = $name;
             $this->hole = array();
+            $this->handOutcome =  array('bonusWin' => false,'blackjack' => false);
         }
     }
 
@@ -29,13 +31,33 @@ class BlackJackDealer extends BlackJackPlayer
         return $this->name;
     }
     
-    public function newRound()
+    public function newRound(string $gameId, string $handId)
     {
         $this->hand = array();
+        $this->handHistory = array();
         $this->hole = array();
         $this->handTotal = 0;
+        $this->details = "";
+
+        foreach (array_keys($this->handOutcome) as $outcome) {
+            $this->handOutcome[$outcome] = false;
+        }
+
+        $this->handBegin($gameId, $handId);
     }
 
+    private function handBegin(string $gameId, string $handId)
+    {
+        $this->setHandDetail($key = 'gameId', $value = $gameId);
+        $this->setHandDetail($key = 'handId', $value = $handId);
+        $this->setHandDetail($key = 'startTime', $value = time());
+    }
+
+    public function endRound()
+    {
+        $this->setHandDetail($key = 'endTime', $value = time());
+        $this->flushHandHistory();
+    }
 
     public function drawHoleCard(array $cards, int $key)
     {
@@ -52,12 +74,27 @@ class BlackJackDealer extends BlackJackPlayer
 
         $this->hole=array();
         $this->handTotal = $this->handTotal();
+
+        $this->setHandDetail($key = 'show', $value = $this->handSummary() . " Total " . $this->handTotal());
     }
 
-    public function debug()
+    public function getBonusWin()
     {
-        print "<pre>";
-        print_r($this);
-        print "</pre>";
+        return ($this->handOutcome['bonusWin']);
+    }
+
+    public function setBonusWin()
+    {
+        $this->handOutcome['bonusWin'] = true;
+    }
+
+    public function getBlackJack()
+    {
+        return ($this->handOutcome['blackjack']);
+    }
+
+    public function setBlackJack()
+    {
+        $this->handOutcome['blackjack'] = true;
     }
 }

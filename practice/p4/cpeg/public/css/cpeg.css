@@ -9,7 +9,6 @@ body
   font-size: 12px !important; 
 }
 
-
 .navbar .navbar-brand
 {
   color: #fff !important;
@@ -61,6 +60,13 @@ body
   margin-top: 10px;
   margin-bottom: 10px;
 }
+
+.seat
+{
+  margin-top: 10px;
+border-bottom: 1px solid #f7f7f7;
+}
+
 
 .playerButton
 {

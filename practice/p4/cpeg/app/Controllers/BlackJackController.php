@@ -84,7 +84,7 @@ class BlackJackController extends Controller implements JsonSerializable
                 $names = $this->getRandomNames();
 
                 $player = new BlackJackPlayer($playerProps=null, $this->patron, $playerName=null);
-                $this->game->seatThisPlayer($player);
+                $this->game->seatThisPlayer($player, $seat=1);
 
                 for ($x=1; $x< $this->game->seats; $x++) {
                     $playerName = array_shift($names);
@@ -94,6 +94,7 @@ class BlackJackController extends Controller implements JsonSerializable
             }
 
             $this->saveGameSession();
+            return $this->app->redirect("/blackjack/?action=newhand");
             return $this->app->view('blackjack.index', ['game' => $this->game, 'scene' => 'newhand' ]);
         } else {
             $data['previousUrl'] = "/blackjack/?action=takeseat";
@@ -138,9 +139,14 @@ class BlackJackController extends Controller implements JsonSerializable
             }
         } elseif ($this->game->getBlackJack()) {
             $this->game->dealer->showHand();
+            $this->game->dealer->appendHandDetail($key = 'turn', $value = "Show " . $this->game->dealer->handSummary() . " Total " . $this->game->dealer->handTotal());
         }
 
         $this->game->payoutPlayers();
+        $this->game->endRound();
+
+        $this->flushHandHistory();
+
         $this->saveGameSession();
         
         return $this->app->redirect('/blackjack/?action=newhand');
@@ -155,15 +161,22 @@ class BlackJackController extends Controller implements JsonSerializable
         }
 
         $this->game->dealer->showHand();
+        $this->game->dealer->appendHandDetail($key = 'turn', $value = "Show " . $this->game->dealer->handSummary() . " Total " . $this->game->dealer->handTotal());
 
         while ($this->game->dealer->handTotal() < 17) {
             $this->game->dealer->drawCard($this->game->deck->dealCard());
+            $this->game->dealer->appendHandDetail($key = 'turn', $value = "Hit " . $this->game->dealer->handSummary() . " Total " . $this->game->dealer->handTotal());
         }
+
+        $this->game->dealer->appendHandDetail($key = 'turn', $value = "Stay " . $this->game->dealer->handSummary() . " Total " . $this->game->dealer->handTotal());
 
         $this->game->determineOutcome();
 
         $this->game->payoutPlayers();
+        $this->game->endRound();
+        $this->flushHandHistory();
         $this->saveGameSession();
+
         return($this->app->redirect('/blackjack/?action=newhand'));
     }
 
@@ -177,14 +190,23 @@ class BlackJackController extends Controller implements JsonSerializable
         if ($choice == 'hit') {
             $player->blackJack = false;
             $player->drawCard($this->game->deck->dealCard());
+
+            if ($player->isPatron()) {
+                $player->appendHandDetail($key = 'turn', $value = "Hit " . $player->handSummary() . " Total " . $player->handTotal());
+            }
+
             $this->saveGameSession();
-            if ($player->handTotal() < 21) {
+            if ($player->handTotal() <= 21) {
                 return $this->app->redirect('/blackjack/?action=turn');
             } else {
                 $this->game->passButton($player->seat);
                 $this->continueRound();
             }
         } else {
+            if ($player->isPatron()) {
+                $player->appendHandDetail($key = 'turn', $value = "Stay " . $player->handSummary() . " Total " . $player->handTotal());
+            }
+
             $this->game->passButton($player->seat);
             $this->continueRound();
         }
@@ -196,6 +218,35 @@ class BlackJackController extends Controller implements JsonSerializable
             $player->drawCard($this->game->deck->dealCard());
         }
         $this->game->passButton($player->seat);
+    }
+
+    private function flushHandHistory()
+    {
+        foreach ($this->game->dealer->handHistory['turn'] as $turn) {
+            $gameRec = array();
+            $gameRec['hand_id'] = $this->game->dealer->handHistory['handId'];
+            $gameRec['player_id'] = 0;
+            $gameRec['turn'] = $turn;
+
+            $this->app->db()->insert('game', $gameRec);
+        }
+
+        foreach ($this->game->players as $player) {
+            if ($player->isPatron()) {
+                $sql = 'UPDATE patron SET token_balance = :token_balance WHERE id = :id';
+                $data = [
+                    'token_balance' =>  $player->patron->getTokens(),
+                    'id' => $player->patron->getId()
+                ];
+                $executed = $this->app->db()->run($sql, $data);
+
+                $this->app->db()->insert('games', $player->patron->gamesRec);
+
+                foreach ($player->patron->gameRecs as $gameRec) {
+                    $this->app->db()->insert('game', $gameRec);
+                }
+            }
+        }
     }
 
     public function jsonSerialize()

@@ -14,7 +14,7 @@
         <a class='list-group-item list-group-item-action' href="/register">Join our Players Club</a>
         <?php } else {?>
         <a class='list-group-item list-group-item-action' href="/register-destroy">unJoin our Players Club</a>
-        <a class='list-group-item list-group-item-action' href="/playerinfo">Player Info</a>
+        <a class='list-group-item list-group-item-action' href="/patron">Player Info</a>
         <?php }?>
         <a class='list-group-item list-group-item-action' href="/lost-found">Lost and Found</a>
         <a class='list-group-item list-group-item-action' href="/attractions">Local Attractions</a>

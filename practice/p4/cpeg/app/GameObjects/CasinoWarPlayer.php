@@ -4,25 +4,40 @@ namespace App\GameObjects;
 class CasinoWarPlayer
 {
     public $hand;
+    public $handHistory;
     public $warHand;
     public $handTotal;
     public $handOutcome;
     public $outcome;
     public $button;
     public $seat;
-    private $patron;
-    private $name;
-    private $ante;
-    private $payout;
-    private $casinoWar;
+    public $patron;
+    public $name;
+    public $ante;
+    public $payout;
+    public $casinoWar;
 
     public function __construct(array $playerProps = null, Patron $patron=null, $playerName="Anonymous")
     {
         if ($playerProps) {
+            $this->seat = $playerProps['seat'];
+            $this->button = $playerProps['button'];
+            $this->hand = $playerProps['hand'];
+            $this->handHistory = $playerProps['handHistory'];
+            $this->warHand = $playerProps['warHand'];
+            $this->handTotal = $playerProps['handTotal'];
+            $this->casinoWar = $playerProps['casinoWar'];
+            $this->handOutcome =  $playerProps['handOutcome'];
+            $this->outcome = $playerProps['outcome'];
+            $this->name = $playerProps['name'];
+            $this->ante = $playerProps['ante'];
+            $this->payout = $playerProps['payout'];
+            $this->patron = ($playerProps['patron'] ? new Patron() : null);
         } else {
             $this->seat = null;
             $this->button = false;
             $this->hand = array();
+            $this->handHistory = array();
             $this->warHand = array();
             $this->ante = 0;
             $this->handTotal = 0;
@@ -35,17 +50,35 @@ class CasinoWarPlayer
         }
     }
 
-    public function newRound()
+    public function newRound(string $gameId, string $handId)
     {
         $this->hand = array();
+        $this->handHistory = array();
         $this->warHand = array();
         $this->handTotal = 0;
         $this->casinoWar = false;
         $this->outcome = null;
-        $this->ante = 0;
         $this->payout = null;
         foreach (array_keys($this->handOutcome) as $outcome) {
             $this->handOutcome[$outcome] = false;
+        }
+
+        $this->handBegin($gameId, $handId);
+    }
+
+    private function handBegin(string $gameId, string $handId)
+    {
+        $this->setHandDetail($key = 'gameId', $value = $gameId);
+        $this->setHandDetail($key = 'handId', $value = $handId);
+        $this->setHandDetail($key = 'startTime', $value = time());
+    }
+
+    public function endRound()
+    {
+        $this->setHandDetail($key = 'endTime', $value = time());
+        
+        if ($this->isPatron()) {
+            $this->flushHandHistory();
         }
     }
 
@@ -57,12 +90,6 @@ class CasinoWarPlayer
         return $this->patron->getName();
     }
 
-    public function setHandHistory(string $entry)
-    {
-        if ($this->isPatron()) {
-            $this->patron->setHistory($entry);
-        }
-    }
 
     public function isPatron()
     {
@@ -122,11 +149,16 @@ class CasinoWarPlayer
         return $this->handTotal;
     }
 
-    public function warHandTotal()
+    public function warHandTotal(int $key = null)
     {
         $this->handTotal = 0;
-        $lastCard = end($this->warHand);
 
+        if ($key) {
+            $lastCard = $this->warHand[$key];
+        } else {
+            $lastCard = end($this->warHand);
+        }
+        
         if ($lastCard['rank'] == 1) {
             $this->handTotal = 14;
         } else {
@@ -139,10 +171,8 @@ class CasinoWarPlayer
     public function collectAnte(int $tokens = 1)
     {
         if ($this->isPatron()) {
-            if ($tokens < $this->patron->getTokens()) {
-                $this->patron->subTokens($tokens);
-                $this->ante = $tokens;
-            }
+            $this->patron->subTokens($tokens);
+            $this->ante = $tokens;
         }
     }
 
@@ -196,34 +226,61 @@ class CasinoWarPlayer
         }
 
         return join(',', $handSummary);
-
-        $this->handTotal = 0;
-        foreach ($this->hand as $card) {
-            if ($card['rank'] <> 1) {
-                $this->handTotal = $this->handTotal + $card['value'];
-            }
-        }
-
-        foreach ($this->hand as $card) {
-            if ($card['rank'] == 1) {
-                if ($this->handTotal == 10) {
-                    $this->handTotal = $this->handTotal + 11;
-                } else {
-                    if (($this->handTotal + 11) > 21) {
-                        $this->handTotal = $this->handTotal + 1;
-                    } else {
-                        $this->handTotal = $this->handTotal + 11;
-                    }
-                }
-            }
-        }
-        return $this->handTotal;
     }
 
-    public function debug()
+    public function warHandSummary(int $key=null)
     {
-        print "<pre>";
-        print_r($this);
-        print "</pre>";
+        if ($key) {
+            $lastCard = $this->warHand[$key];
+        } else {
+            $lastCard = end($this->warHand);
+        }
+
+        return $lastCard['emoji'];
+    }
+
+    public function setHandHistory(string $entry)
+    {
+        if ($this->isPatron()) {
+            $this->patron->setHistory($entry);
+        }
+    }
+
+    public function setHandDetail(string $key, string $value)
+    {
+        $this->handHistory[$key] = $value;
+    }
+
+    public function appendHandDetail(string $key, string $value)
+    {
+        $this->handHistory[$key][] = $value;
+    }
+
+    public function flushHandHistory()
+    {
+        if ($this->isPatron()) {
+            $gamesRec['game'] = $this->handHistory['gameId'];
+            $gamesRec['hand_id'] = $this->handHistory['handId'];
+            $gamesRec['start_time'] = date("Y-m-d h:i:s", $this->handHistory['startTime']);
+            $gamesRec['end_time'] = date("Y-m-d h:i:s", $this->handHistory['endTime']);
+            $gamesRec['player_id'] = $this->patron->getId();
+            $gamesRec['seat'] = $this->seat;
+            $gamesRec['ante'] = $this->ante;
+            $gamesRec['hand_summary'] = ($this->gotoWar() ? $this->warHandSummary() : $this->handSummary());
+            $gamesRec['outcome'] = $this->outcome;
+            $gamesRec['token_win'] = ($this->payout ? $this->getPayout() : null);
+            $gamesRec['token_loss'] = (! $this->payout ? $this->ante : null);
+
+            foreach ($this->handHistory['turn'] as $hand) {
+                $gameRec = array();
+                $gameRec['hand_id'] = $this->handHistory['handId'];
+                $gameRec['player_id'] = $this->patron->getId();
+                $gameRec['turn'] = $hand;
+
+                $gameRecs[] = $gameRec;
+            }
+
+            $this->patron->setGameHistory($gamesRec = $gamesRec, $gameRecs=$gameRecs);
+        }
     }
 }

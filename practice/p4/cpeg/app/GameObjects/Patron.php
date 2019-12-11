@@ -5,8 +5,10 @@ use JsonSerializable;
 
 class Patron implements JsonSerializable
 {
+    public $id;
     public $name;
-    public $history;
+    public $gamesRec;
+    public $gameRecs;
     public $tokens;
 
     public function __construct(string $name=null)
@@ -14,16 +16,21 @@ class Patron implements JsonSerializable
         $patronProps = $this->loadSession();
 
         if ($patronProps) {
+            $this->id = $patronProps['id'];
             $this->name = $patronProps['name'];
             $this->tokens = $patronProps['tokens'];
-            $this->history = $patronProps['history'];
         } elseif ($name) {
+            $this->id = null;
             $this->name = $name;
             $this->tokens = 50;
-            $this->history = array();
-
-            $this->saveSession();
+            $this->gamesRec = "";
+            $this->gameRecs = "";
         }
+    }
+
+    public function getId()
+    {
+        return ($this->id ? $this->id : "");
     }
 
     public function getName()
@@ -53,10 +60,10 @@ class Patron implements JsonSerializable
         $this->saveSession();
     }
 
-    public function setHistory(string $entry)
+    public function setGameHistory(array $gamesRec, array $gameRecs)
     {
-        $this->history[] = $entry;
-        $this->saveSession();
+        $this->gamesRec = $gamesRec;
+        $this->gameRecs = $gameRecs;
     }
 
     public function saveSession()
@@ -83,9 +90,9 @@ class Patron implements JsonSerializable
     public function jsonSerialize()
     {
         return [
+            'id' => $this->id,
             'name' => $this->name,
             'tokens' => $this->tokens,
-            'history' => $this->history,
         ];
     }
 

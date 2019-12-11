@@ -31,7 +31,7 @@
 
 @if (! $scene )
 <div class='container'>
-    <form class="form-inline" method='POST' action="/blackjack/?action=takeseat">
+    <form class="form-inline" method='POST' action="/blackjack/takeseat">
         <button class='button_submit' type='submit'>Take A Seat</button>
     </form>
 </div>

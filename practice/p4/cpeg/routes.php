@@ -1,13 +1,16 @@
 <?php
 
 return [
-    '/' => ['AppController', 'index'],
+    #'/' => ['AppController', 'index'],
+    '/' => ['BlackJackController', 'index'],
     '/about' => ['AppController', 'about'],
-    '/services' => ['GuestServiceController', 'index'],
+    #'/services' => ['GuestServiceController', 'index'],
+    '/services' => ['GuestServiceController', 'register'],
     '/register' => ['GuestServiceController', 'register'],
-    '/register-save' => ['GuestServiceController', 'registerSave'],
+    '/register-new' => ['GuestServiceController', 'registerNew'],
     '/register-destroy' => ['GuestServiceController', 'registerDestroy'],
-    '/playerinfo' => ['GuestServiceController', 'playerinfo'],
+    '/patron' => ['GuestServiceController', 'patron'],
+    '/game' => ['GuestServiceController', 'game'],
     '/blackjack' => ['BlackJackController', 'index'],
     '/blackjack/takeseat' => ['BlackJackController', 'seatPlayers'],
     '/blackjack/leavetable' => ['BlackJackController', 'leaveTable'],

@@ -78,7 +78,7 @@ class CasinoWarController extends Controller implements JsonSerializable
                 $names = $this->getRandomNames();
 
                 $player = new CasinoWarPlayer($playerProps=null, $this->patron, $playerName=null);
-                $this->game->seatThisPlayer($player);
+                $this->game->seatThisPlayer($player, $seat=1);
 
                 for ($x=1; $x< $this->game->seats; $x++) {
                     $playerName = array_shift($names);
@@ -88,6 +88,7 @@ class CasinoWarController extends Controller implements JsonSerializable
             }
 
             $this->saveGameSession();
+            return $this->app->redirect("/casinowar/?action=newhand");
             return $this->app->view('casinowar.index', ['game' => $this->game, 'scene' => 'newhand' ]);
         } else {
             $data['previousUrl'] = "/casinowar/?action=takeseat";
@@ -115,50 +116,107 @@ class CasinoWarController extends Controller implements JsonSerializable
 
     public function playRound()
     {
-        $demo = ($this->app->param('play') ? false : true);
-
-        $names = $this->getRandomNames();
-        shuffle($names);
-
-        if ($demo) {
-            $playerName = array_shift($names);
-            $player = new CasinoWarPlayer($patron=null, $playerName = $playerName);
-            $this->game->seatThisPlayer($player);
-        } else {
-            $patron = new Patron("Valued Guest");
-            $player = new CasinoWarPlayer($patron);
-            $this->game->seatThisPlayer($player);
-        }
-        for ($x=1; $x<= $this->game->seats -1; $x++) {
-            $playerName = array_shift($names);
-            $players[$x] = new CasinoWarPlayer($patron=null, $playerName = $playerName);
-            $this->game->seatThisPlayer($players[$x]);
-        }
-
         $this->game->newRound();
-
-        foreach ($this->game->players as $player) {
-            if ($player->isPatron()) {
-                $player->collectAnte();
-            }
-        }
 
         $this->game->dealHand();
 
-        //$this->game->peekHand();
-
         if ($this->game->continueRound()) {
             foreach ($this->game->players as $player) {
-                if ($player->hasButton()) {
-                    while (($player->handTotal() <> $this->game->dealer->handTotal())) {
-                        $player->drawCard($this->game->deck->dealCard());
-                    }
-                    $this->game->passButton($player->seat);
+                if (($player->isPatron()) && $player->hasButton()) {
+                    $this->saveGameSession();
+                    return $this->app->redirect('/casinowar/?action=turn');
+                } elseif ($player->hasButton()) {
+                    $this->playAutoHand($player);
                 }
             }
         }
-        
+
+
         $this->game->payoutPlayers();
+        $this->game->endRound();
+        $this->flushHandHistory();
+        $this->saveGameSession();
+
+        return $this->app->redirect('/casinowar/?action=newhand');
+    }
+
+    public function continueRound()
+    {
+        foreach ($this->game->players as $player) {
+            if ($player->hasButton()) {
+                $this->playAutoHand($player);
+            }
+        }
+
+        $this->game->payoutPlayers();
+        $this->game->endRound();
+        $this->flushHandHistory();
+        $this->saveGameSession();
+        return($this->app->redirect('/casinowar/?action=newhand'));
+    }
+
+    public function playHand()
+    {
+        $choice = $this->app->input('choice');
+        $seat = $this->app->input('seat');
+
+        $player = $this->game->players[$seat];
+
+        while (($player->handTotal() <> $this->game->dealer->handTotal())) {
+            $player->drawCard($this->game->deck->dealCard());
+            if ($player->isPatron()) {
+                $player->appendHandDetail($key = 'turn', $value = "Draw " . $player->handSummary() . " Total " . $player->handTotal());
+            }
+        }
+        
+        $this->saveGameSession();
+        $this->game->passButton($player->seat);
+        $this->continueRound();
+    }
+
+    private function playAutoHand(CasinoWarPlayer $player)
+    {
+        while (($player->handTotal() <> $this->game->dealer->handTotal())) {
+            $player->drawCard($this->game->deck->dealCard());
+        }
+        $this->game->passButton($player->seat);
+    }
+
+    private function flushHandHistory()
+    {
+        foreach ($this->game->dealer->handHistory['turn'] as $turn) {
+            $gameRec = array();
+            $gameRec['hand_id'] = $this->game->dealer->handHistory['handId'];
+            $gameRec['player_id'] = 0;
+            $gameRec['turn'] = $turn;
+
+            $this->app->db()->insert('game', $gameRec);
+        }
+
+
+        foreach ($this->game->players as $player) {
+            if ($player->isPatron()) {
+                $sql = 'UPDATE patron SET token_balance = :token_balance WHERE id = :id';
+                $data = [
+                    'token_balance' =>  $player->patron->getTokens(),
+                    'id' => $player->patron->getId()
+                ];
+                $executed = $this->app->db()->run($sql, $data);
+
+                $this->app->db()->insert('games', $player->patron->gamesRec);
+
+                foreach ($player->patron->gameRecs as $gameRec) {
+                    $this->app->db()->insert('game', $gameRec);
+                }
+            }
+        }
+
+
+        // foreach ($this->game->players as $player) {
+        //     if ($player->isPatron()) {
+        //                  $this->app->db()->insert('gamehistory', $player->patron->history);
+        //     }
+        // }
     }
 
     public function jsonSerialize()

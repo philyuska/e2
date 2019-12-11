@@ -3,11 +3,10 @@ namespace App\GameObjects;
 
 class BlackJack
 {
+    public $id = "BlackJack";
     public $seats = 5;
     private $seatsAvailable;
     private $initalHandSize = 2;
-    private $bonusWin = false;
-    private $blackJack = false;
     
     private $shoeSize = 6;
     private $shoeReshuffle = .25;
@@ -16,6 +15,16 @@ class BlackJack
 
     public function __construct($gameSession = null)
     {
+        /*
+           make sure the gameSession id is for this game
+           otherwise initialize a new game
+        */
+        if ($gameSession) {
+            if ($gameSession['id'] <> $this->id) {
+                $gameSession = null;
+            }
+        }
+
         if ($gameSession) {
             $this->dealer = new BlackJackDealer($playerData = $gameSession['dealer']);
             $this->deck = new ShoeOfCards($deckProps = $gameSession['deck']);
@@ -24,10 +33,15 @@ class BlackJack
             }
         } else {
             $this->seatsAvailable = range(0, $this->seats);
-            $this->dealer = new BlackJackDealer($plaertData = null, $name="Dealer");
+            $this->dealer = new BlackJackDealer($playerData = null, $name="Dealer");
             $this->players = array();
             $this->deck = new ShoeOfCards($deckProps=null, $shoeSize=$this->shoeSize);
         }
+    }
+
+    public function gameId()
+    {
+        return $this->id;
     }
 
     public function getSeatsAvailable()
@@ -40,32 +54,21 @@ class BlackJack
         return $this->initalHandSize;
     }
 
-    public function setBonusWin()
-    {
-        $this->bonusWin = true;
-    }
-
     public function getBonusWin()
     {
-        return ($this->bonusWin);
-    }
-
-    public function setBlackJack()
-    {
-        $this->blackJack = true;
+        return ($this->dealer->getBonusWin());
     }
 
     public function getBlackJack()
     {
-        return $this->blackJack;
+        return $this->dealer->getBlackJack();
     }
 
     public function newRound()
     {
+        $handId = uniqid();
         $this->continueRound = false;
-        $this->bonusWin = false;
-        $this->blackJack = false;
-        $this->dealer->newRound();
+        $this->dealer->newRound($gameId = $this->gameId(), $handId = $handId);
 
         if ($this->deck->getCardsRemaining() < ($this->shoeSize * 52) * $this->shoeReshuffle) {
             $this->deck = new ShoeOfCards($deckProps=null, $this->shoeSize);
@@ -73,13 +76,8 @@ class BlackJack
 
         $this->players[1]->button = true;
         foreach ($this->players as $player) {
-            $player->newRound();
+            $player->newRound($gameId = $this->gameId(), $handId = $handId);
         }
-    }
-
-    public function continueRound()
-    {
-        return $this->continueRound;
     }
 
     public function dealHand()
@@ -95,21 +93,34 @@ class BlackJack
                 $this->dealer->drawCard($this->deck->dealCard(), $i);
             }
         }
+
+        $this->dealer->appendHandDetail($key = 'turn', $value = "Deal " . $this->dealer->handSummary() . " Total " . $this->dealer->handTotal());
+
+        foreach ($this->players as $player) {
+            if ($player->isPatron()) {
+                $player->appendHandDetail($key = 'turn', $value = "Deal " . $player->handSummary() . " Total " . $player->handTotal());
+            }
+        }
     }
  
     public function peekHand()
     {
         if ($this->dealer->hand[2]['value'] == 21) {
-            $this->setBonusWin();
+            $this->dealer->setBonusWin();
         } elseif (
             (($this->dealer->hand[1]['rank'] == 1) && ($this->dealer->hole[2]['value'] == 10)) ||
             (($this->dealer->hand[1]['value'] == 10) && ($this->dealer->hole[2]['rank'] == 1))
         ) {
             $this->dealer->handTotal = 21;
-            $this->setBlackJack();
+            $this->dealer->setBlackJack();
         }
-
+        $this->dealer->appendHandDetail($key = 'peek', $value = "Deal " . $this->dealer->handSummary() . " Total " . $this->dealer->handTotal());
         return ($this->peekHandOutcome());
+    }
+
+    public function continueRound()
+    {
+        return $this->continueRound;
     }
 
     public function peekHandOutcome()
@@ -120,13 +131,13 @@ class BlackJack
             }
         }
 
-        if ($this->bonusWin) {
+        if ($this->getBonusWin()) {
             $this->continueRound = false;
             foreach ($this->players as $player) {
                 $player->handOutcome['bonusWin'] = true;
                 $player->outcome = "Win, yahPoo bonus";
             }
-        } elseif ($this->blackJack) {
+        } elseif ($this->getBlackJack()) {
             $this->continueRound = false;
             foreach ($this->players as $player) {
                 if ($player->handTotal() == 21) {
@@ -196,21 +207,39 @@ class BlackJack
 
                 if ($player->handOutcome['bonusWin']) {
                     $player->payout($playerAnte + $playerAnte * $bonusPayout);
+                    $this->dealer->appendHandDetail($key = 'turn', $value = "Bonus Payout " . $player->getPayout());
+                    $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
                 }
                 if ($player->handOutcome['playerWin']) {
                     if ($player->hasBlackJack()) {
                         $player->payout($playerAnte + ($playerAnte * 2));
+                        $this->dealer->appendHandDetail($key = 'turn', $value = "BlackJack Payout " . $player->getPayout());
+                        $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
                     } else {
                         $player->payout($playerAnte + ($playerAnte * $payout));
+                        $this->dealer->appendHandDetail($key = 'turn', $value = "Payout " . $player->getPayout());
+                        $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
                     }
                 }
                 if ($player->handOutcome['playerPush']) {
                     $player->payout($playerAnte);
+                    $this->dealer->appendHandDetail($key = 'turn', $value = "Push");
+                    $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
                 }
-
-                $player->history();
+                if ($player->handOutcome['playerLoss']) {
+                    $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
+                }
             }
         }
+    }
+
+    public function endRound()
+    {
+        foreach ($this->players as $player) {
+            $player->endRound();
+        }
+        
+        $this->dealer->endRound();
     }
 
     public function seatThisPlayer(BlackJackPlayer $player, int $seat=null)
