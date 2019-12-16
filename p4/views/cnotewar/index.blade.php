@@ -60,6 +60,7 @@
                         <li>Tying War pays 100 tokens.</li>
                     </ul>
                     Place your wager in the field below and click the New Hand button to begin.
+                    Visit the <a href='/patron'>Players Club</a> any time to view your game history.
                 </div>
             </div>
         </div>
