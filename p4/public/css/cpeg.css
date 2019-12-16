@@ -1,0 +1,163 @@
+body
+{
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.navbar
+{
+  background-color: #f4511e;
+  font-size: 12px !important; 
+}
+
+.navbar .navbar-brand
+{
+  color: #fff !important;
+  font-size: 14px !important;	
+}
+.navbar li a
+{
+  color: #fff !important;
+}  
+.navbar-nav li a:hover, .navbar-nav li.active a
+{
+  color: #fff !important;
+  background-color: black !important;
+}
+
+#princess-abby
+{
+  width: 300px;
+  height: 300px;
+  margin-right: 20px;
+}
+
+#cpeg-resort
+{
+  width: 200px;
+  height: 200px;
+  margin-right: 20px;
+}
+
+#cpeg-oops
+{
+  width: 100px;
+  height: 100px;
+  margin-left: 20px;
+  float: left;
+}
+
+.cpeg-ul
+{
+  list-style-type: none;
+}
+
+.cpeg-ul li:before
+{
+  content: '';
+  display: inline-block;
+  height: 16px;
+  width: 12px;
+  background-size: 12px;
+  background-image: url('/images/jester_PNG12.png');
+  background-repeat: no-repeat;
+  margin-right: 5px;
+
+}
+.dealer-container
+{
+  margin-top: 10px;
+  padding-top: 10px;
+  margin-bottom: 10px;
+  background-color: #e6ffe6
+}
+.player-container
+{
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.seat
+{
+  margin-top: 10px;
+border-bottom: 1px solid #f7f7f7;
+}
+
+
+.playerButton
+{
+  background-color: #f7f7f7;
+}
+
+.playerWin
+{
+  background-color: green;
+}
+
+.playerLoss
+{
+  background-color: yellow;
+}
+
+.playerPush
+{
+  background-color: blue;
+}
+
+.playingcard
+{
+  border: 1px solid;
+  box-shadow: 0 4px 4px 0;
+  width: 110px;
+  height: 130px;
+  float: left;
+  text-align: center; 
+  border-radius: 0px;
+  background-color: whitesmoke;
+}
+
+.playingcard-description
+{
+  padding-top: 0px;
+  padding-bottom: 4px;
+  font-size: 11px;
+  text-align: center;
+  width: 110px;
+  white-space: nowrap;
+}
+
+
+.glyph
+{
+  margin: 0px;
+  padding: 0px;
+  font-size: 70px;
+  text-align: center;
+}		
+
+.glyph__mini
+{
+  margin: 0px;
+  padding: 0px;
+  font-size: 64px;
+  text-align: center;
+}
+		
+.spades
+{
+  color: black;
+}
+		
+.hearts
+{
+  color: red;
+}		
+
+.diamonds
+{
+  color: blue;
+}
+
+.clubs
+{
+  color: green;
+}
