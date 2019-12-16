@@ -58,7 +58,7 @@
                         <li>Black Jack payout is 2 to 1, all other winning hands payout at 1 to 1</li>
                         <li>yahPoo Bonus payout is a surprise</li>
                     </ul>
-                    Place your wager in the field below and click the New Hand button to begin.
+                    Place your wager in the field below and click the New Hand button to begin.<br />
                     Visit the <a href='/patron'>Players Club</a> any time to view your game history.
                 </div>
             </div>
@@ -82,7 +82,8 @@
                         <li>The advice offered is based upon basic blackjack strategy.
                         </li>
                     </ul>
-                    Choose to Hit or Stay and click the Your Choice button to continue
+                    Choose to Hit or Stay and click the Your Choice button to continue<br />
+                    Visit the <a href='/patron'>Players Club</a> any time to view your game history.
                 </div>
             </div>
         </div>

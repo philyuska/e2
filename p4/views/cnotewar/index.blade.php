@@ -59,7 +59,7 @@
                         <li>Winning War pays out at 2 to 1.</li>
                         <li>Tying War pays 100 tokens.</li>
                     </ul>
-                    Place your wager in the field below and click the New Hand button to begin.
+                    Place your wager in the field below and click the New Hand button to begin.<br />
                     Visit the <a href='/patron'>Players Club</a> any time to view your game history.
                 </div>
             </div>
