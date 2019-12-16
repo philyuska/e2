@@ -86,7 +86,8 @@ class AppController extends Controller
        
         FROM patron p
         JOIN games as g on ( g.patron_id = p.id )
-        where p.id = :patron_id
+        WHERE p.id = :patron_id
+        GROUP BY p.id
         ';
 
         $data = [
