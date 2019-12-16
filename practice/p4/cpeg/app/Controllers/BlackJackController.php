@@ -2,9 +2,9 @@
 namespace App\Controllers;
 
 use JsonSerializable;
-use App\GameObjects\BlackJack;
-use App\GameObjects\Patron;
-use App\GameObjects\BlackJackPlayer;
+use App\CpegObjects\BlackJack;
+use App\CpegObjects\Patron;
+use App\CpegObjects\BlackJackPlayer;
 
 class BlackJackController extends Controller implements JsonSerializable
 {
@@ -94,12 +94,16 @@ class BlackJackController extends Controller implements JsonSerializable
             }
 
             $this->saveGameSession();
-            return $this->app->redirect("/blackjack/?action=newhand");
-            return $this->app->view('blackjack.index', ['game' => $this->game, 'scene' => 'newhand' ]);
+            return $this->app->redirect("/blackjack/newround");
         } else {
-            $data['previousUrl'] = "/blackjack/?action=takeseat";
+            $data['previousUrl'] = "/blackjack/takeseat";
             $this->app->redirect('/register', $data);
         }
+    }
+
+    public function newRound()
+    {
+        return $this->app->view('blackjack.newround', ['game' => $this->game ]);
     }
 
     public function leaveTable()
@@ -108,14 +112,14 @@ class BlackJackController extends Controller implements JsonSerializable
         $this->app->redirect('/blackjack');
     }
 
-    public function ante()
+    public function collectWager()
     {
         $this->app->validate([
-            'ante' => 'required|min:1|max:50',
+            'wager' => 'required|min:1|max:50',
         ]);
 
-        $ante = $this->app->input('ante');
-        $this->game->players[$this->app->input('seat')]->collectAnte($tokens=$ante);
+        $wager = $this->app->input('wager');
+        $this->game->players[$this->app->input('seat')]->collectWager($tokens=$wager);
 
         $this->playRound();
     }
@@ -182,6 +186,11 @@ class BlackJackController extends Controller implements JsonSerializable
 
     public function playHand()
     {
+        $this->app->validate([
+            'choice' => 'required',
+            'seat' => 'required',
+        ]);
+
         $choice = $this->app->input('choice');
         $seat = $this->app->input('seat');
 
@@ -225,7 +234,7 @@ class BlackJackController extends Controller implements JsonSerializable
         foreach ($this->game->dealer->handHistory['turn'] as $turn) {
             $gameRec = array();
             $gameRec['hand_id'] = $this->game->dealer->handHistory['handId'];
-            $gameRec['player_id'] = 0;
+            $gameRec['patron_id'] = 0;
             $gameRec['turn'] = $turn;
 
             $this->app->db()->insert('game', $gameRec);

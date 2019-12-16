@@ -31,12 +31,12 @@
 
             <ul class='navbar-nav'>
                 <li
-                    class='nav-item <?=(strstr($menuItem_selected, "blackjack") ? "active" : "")?>'>
-                    <a class='nav-link' href='/blackjack'>Black Jack</a>
+                    class='nav-item <?=(empty($menuItem_selected) || strstr($menuItem_selected, "blackjack") ? "active" : "")?>'>
+                    <a class='nav-link' href='/blackjack'>Play Black Jack</a>
                 </li>
                 <li
-                    class='nav-item <?=(strstr($menuItem_selected, "casinowar") ? "active" : "")?>'>
-                    <a class='nav-link' href='/casinowar'>Casino War</a>
+                    class='nav-item <?=(strstr($menuItem_selected, "cnotewar") ? "active" : "")?>'>
+                    <a class='nav-link' href='/cnotewar'>Play Cnote War</a>
                 </li>
             </ul>
             <ul class="navbar-nav ml-auto">
@@ -44,10 +44,18 @@
                     class='nav-item <?=(strstr($menuItem_selected, "about") ? "active" : "")?>'>
                     <a class='nav-link' href='/about'>About</a>
                 </li>
+
+                <?php if (array_key_exists('cpeg_patron', $_SESSION)) { ?>
                 <li
-                    class='nav-item <?=(((strstr($menuItem_selected, "services") or (strstr($menuItem_selected, "patron"))) or (strstr($menuItem_selected, "register"))) ? "active" : "")?>'>
-                    <a class='nav-link' href='/services'>Guest Services</a>
+                    class='nav-item <?=(strstr($menuItem_selected, "patron") ? "active" : "")?>'>
+                    <a class='nav-link ' href='/patron'>Players Club</a>
                 </li>
+                <?php } else {?>
+                <li
+                    class='nav-item <?=(strstr($menuItem_selected, "register") ? "active" : "")?>'>
+                    <a class='nav-link' href='/register'>Register</a>
+                </li>
+                <?php } ?>
             </ul>
 
         </nav>
@@ -56,12 +64,15 @@
     <main>
         @yield('content') </main>
     <footer>
+        <div class='container pt-6'>
+            This is not a gambling site.
+        </div>
     </footer>
 
     @yield('body')
 
-    <?php (isset($game) ? dump($game) : "");?>
-    <?php dump($_SESSION);?>
+    <!-- <?php (isset($game) ? dump($game) : "");?>
+    <?php dump($_SESSION);?> -->
 
 </body>
 

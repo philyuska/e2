@@ -1,5 +1,5 @@
 <?php
-namespace App\GameObjects;
+namespace App\CpegObjects;
 
 class BlackJack
 {
@@ -203,30 +203,32 @@ class BlackJack
 
         foreach ($this->players as $player) {
             if ($player->isPatron()) {
-                $playerAnte = $player->getAnte();
+                $playerWager = $player->getWager();
 
                 if ($player->handOutcome['bonusWin']) {
-                    $player->payout($playerAnte + $playerAnte * $bonusPayout);
+                    $player->payout($playerWager + $playerWager * $bonusPayout);
                     $this->dealer->appendHandDetail($key = 'turn', $value = "Bonus Payout " . $player->getPayout());
                     $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
                 }
                 if ($player->handOutcome['playerWin']) {
                     if ($player->hasBlackJack()) {
-                        $player->payout($playerAnte + ($playerAnte * 2));
+                        $player->payout($playerWager + ($playerWager * 2));
                         $this->dealer->appendHandDetail($key = 'turn', $value = "BlackJack Payout " . $player->getPayout());
                         $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
                     } else {
-                        $player->payout($playerAnte + ($playerAnte * $payout));
+                        $player->payout($playerWager + ($playerWager * $payout));
                         $this->dealer->appendHandDetail($key = 'turn', $value = "Payout " . $player->getPayout());
                         $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
                     }
                 }
                 if ($player->handOutcome['playerPush']) {
-                    $player->payout($playerAnte);
-                    $this->dealer->appendHandDetail($key = 'turn', $value = "Push");
+                    $player->payout($playerWager);
+                    $this->dealer->appendHandDetail($key = 'turn', $value = "Push Payout " . $player->getPayout());
                     $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
                 }
                 if ($player->handOutcome['playerLoss']) {
+                    $this->dealer->appendHandDetail($key = 'turn', $value = "Patron Lost");
+                    $this->dealer->appendHandDetail($key = 'turn', $value = "Collected " . $playerWager);
                     $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
                 }
             }

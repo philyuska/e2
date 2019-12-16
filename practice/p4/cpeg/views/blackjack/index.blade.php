@@ -2,44 +2,90 @@
 
 @section('content')
 
+@if (! $scene )
+
 <div class='container'>
     <div id='accordion'>
         <div class='card'>
             <div class='card-header'>
-                <a class='card-link' data-toggle="collapse" href="#instructions">
-                    <h4>Instructions</h4>
-                </a>
+                <div class='float-right'>
+                    <form class="form-inline" method='POST' action="/blackjack/takeseat">
+                        <button class='button_submit float-right' type='submit'>Take A Seat</button>
+                    </form>
+                </div>
+                <h4>Take a seat at our Black Jack table</h4>
             </div>
-            <div id='instructions' class='{{ ( $scene ? "collapse" : "" ) }}' data-parent='#accordion'>
+            <div id='accordion-content' data-parent='#accordion'>
                 <div class='card-body'>
+                    <h5>Instructions</h5>
                     <ul class='cpeg-ul'>
                         <li>Attempt to beat the dealer by getting a hand total closest to 21 without going over.</li>
-                        <li>Aces are worth 1 or 11, hand splits are not allowed.</li>
+                        <li>Cards are ranked 2 thru King, Aces are worth 1 or 11.</li>
+                        <li>Two cards are dealt to each player and the dealer.</li>
+                        <li>Each player is given a chance to adjust their hand total by drawing additional cards "Hit"
+                            or "Stay" when they are satisfied with the hand total.</li>
+                        <li>The dealer will stay at 17, and if thier hand total is greater than 21 "Bust", you win.</li>
+                        <li>If your hand total is greater than 21 "Bust", you lose.</li>
                         <li>Win instantly if the dealers hole card matches &#x1f4a9;.</li>
-                        <li>The dealer will stand with 17, and if thier hand total is greater than 21 "bust", you win.
-                        </li>
-                        <li>Advice is offered on whether to Hit or Stay but the choice is yours.If your hand total is
-                            greater than 21
-                            "bust", you lose.</li>
-                        <li>Press the Take A Seat button to play.</li>
+
                     </ul>
+                    Press the Take A Seat button to play.<br />
+                    Visit the <a href='/patron'>Players Club</a> any time to view your game history.
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@if (! $scene )
+@endif
+
+@if ($scene == 'newhand')
 <div class='container'>
-    <form class="form-inline" method='POST' action="/blackjack/takeseat">
-        <button class='button_submit' type='submit'>Take A Seat</button>
-    </form>
+    <div id='accordion'>
+        <div class='card'>
+            <div class='card-header'>
+                <div class='float-right'>
+                    <form class="form-inline" method='POST' action="/blackjack/leavetable">
+                        <button class='button_submit float-right' type='submit'>Leave the Table</button>
+                    </form>
+                </div>
+                <h4>Wagers and Payouts</h4>
+            </div>
+            <div id='accordion-content' data-parent='#accordion'>
+                <div class='card-body'>
+                    <ul class='cpeg-ul'>
+                        <li>Minimum wager is 1 token, maximum is 50</li>
+                        <li>Black Jack payout is 2 to 1, all other winning hands payout at 1 to 1</li>
+                        <li>yahPoo Bonus payout is a surprise</li>
+                    </ul>
+                    Place your wager in the field below and click the New Hand button to begin.
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-@else
+@endif
+
+@if ($scene == 'turn')
 <div class='container'>
-    <form class="form-inline" method='POST' action="/blackjack/leavetable">
-        <button class='button_submit' type='submit'>Leave the Table</button>
-    </form>
+    <div id='accordion'>
+        <div class='card'>
+            <div class='card-header'>
+                <h4>Game Play</h4>
+            </div>
+            <div id='accordion-content' data-parent='#accordion'>
+                <div class='card-body'>
+                    <ul class='cpeg-ul'>
+                        <li>Choose Hit to be dealt an additional card and adjust your hand total.</li>
+                        <li>Choose Stay if you feel your hand total is sufficient to beat the dealers.</li>
+                        <li>The advice offered is based upon basic blackjack strategy.
+                        </li>
+                    </ul>
+                    Choose to Hit or Stay and click the Your Choice button to continue
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endif
 
@@ -66,9 +112,8 @@
                     <div class='playingcard-description'>
                         {{ $card["name"] }}
                     </div>
-                    <div
-                        class='glyph <?=$card['suit']?>'>
-                        <?=$card['glyph']?>
+                    <div class='glyph {{ $card["suit"] }}'>
+                        {!! $card['glyph'] !!}
                     </div>
                 </div>
                 @endforeach
@@ -143,10 +188,10 @@
     @foreach ($game->players as $seat => $player)
 
     @if (! $player->isPatron())
-    <div class='row'>
+    <div class='row seat'>
 
         <div class='col-lg-1 text-center'>
-            {{ $seat }}
+            seat {{ $seat }}
         </div>
         <div class='col-lg-2'>
         </div>
@@ -169,21 +214,21 @@
         </div>
     </div>
     @else
-    <div class='row'>
-        <div class='col-lg-1 text-center playerButton'>
-            {{ $seat }}
+    <div class='row seat playerButton'>
+        <div class='col-lg-1 text-center'>
+            seat {{ $seat }}
         </div>
-        <div class='col-lg-2 playerButton'>
+        <div class='col-lg-2'>
             <div class='row no-gutters'>
                 Tokens {{ $player->getTokens() }}
             </div>
             <div class='row no-gutters'>
-                Ante {{ ( $player->getAnte() ? $player->getAnte() : "1") }}
+                Wager {{ ( $player->getWager() ? $player->getWager() : "1") }}
             </div>
             @if ( $player->outcome )
             @if ( $player->handOutcome['playerLoss'] )
             <div class='row no-gutters'>
-                Tokens lost {{ ( $player->handOutcome['playerLoss'] ? $player->getAnte() : "0" ) }}
+                Tokens lost {{ ( $player->handOutcome['playerLoss'] ? $player->getWager() : "0" ) }}
             </div>
             @else
             <div class='row no-gutters'>
@@ -193,7 +238,7 @@
             @endif
 
         </div>
-        <div class='col-lg-4 playerButton'>
+        <div class='col-lg-4'>
             <div class='row'>
                 <p><strong> {{ $player->getName() }}</strong>
                     has <strong>{{ $player->blackJack ? 'Blackjack' : $player->handTotal()
@@ -211,7 +256,7 @@
 
         @if ($scene == "newhand")
 
-        <div class='col-lg-5 playerButton'>
+        <div class='col-lg-5'>
             <div class='row'>
                 @if($app->errorsExist())
                 <ul class='cpeg-ul error alert alert-danger'>
@@ -224,14 +269,14 @@
                 @endif
             </div>
             <div class='row'>
-                <form class='form-inline' method='POST' action="/blackjack/ante">
+                <form class='form-inline' method='POST' action="/blackjack/collectWager">
                     <input type='hidden' value='{{ $seat }}' id='seat' name='seat'>
 
-                    <label for='ante'>Ante&nbsp;</label>
+                    <label for='wager'>Wager&nbsp;</label>
                     <div class='form-group'>
-                        <input type='text' class='col-3' value='{{ ( $player->getAnte() ? $player->getAnte() : "1" ) }}'
-                            id='ante' name='ante'>
-                        <button class='button_submit' type='submit'>New hand</button>
+                        <input type='text' class='col-3'
+                            value='{{ ( $player->getWager() ? $player->getWager() : "1" ) }}' id='wager' name='wager'>
+                        <button class='button_submit' type='submit'>New Hand</button>
                     </div>
                 </form>
             </div>
@@ -241,7 +286,7 @@
 
         @if ($scene == "turn")
 
-        <div class='col-lg-5 playerButton'>
+        <div class='col-lg-5'>
             <div class='row'>
                 @if($app->errorsExist())
                 <ul class='cpeg-ul error alert alert-danger'>

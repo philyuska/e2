@@ -1,5 +1,5 @@
 <?php
-namespace App\GameObjects;
+namespace App\CpegObjects;
 
 class ShoeOfCards
 {

@@ -1,12 +1,12 @@
 <?php
-namespace App\GameObjects;
+namespace App\CpegObjects;
 
-class CasinoWar
+class CnoteWar
 {
-    public $id = "CasinoWar";
+    public $id = "CnoteWar";
     public $seats = 5;
     private $initalHandSize = 1;
-    private $casinoWar = false;
+    private $cnoteWar = false;
     private $gameOver = false;
     private $roundOver = false;
     
@@ -29,14 +29,14 @@ class CasinoWar
         }
 
         if ($gameSession) {
-            $this->dealer = new CasinoWarPlayer($playerData = $gameSession['dealer']);
+            $this->dealer = new CnoteWarPlayer($playerData = $gameSession['dealer']);
             $this->deck = new ShoeOfCards($deckProps = $gameSession['deck']);
             foreach ($gameSession['players'] as $seat => $playerData) {
-                $this->players[$seat] = new CasinoWarPlayer($playerData = $playerData);
+                $this->players[$seat] = new CnoteWarPlayer($playerData = $playerData);
             }
         } else {
             $this->seatsAvailable = range(0, $this->seats);
-            $this->dealer = new CasinoWarPlayer($playerData = null, $patron=null, $name="Dealer");
+            $this->dealer = new CnoteWarPlayer($playerData = null, $patron=null, $name="Dealer");
             $this->players = array();
             $this->deck = new ShoeOfCards($deckProps = null, $this->shoeSize);
         }
@@ -72,14 +72,14 @@ class CasinoWar
         $this->roundOver = true;
     }
 
-    public function setCasinoWar()
+    public function setCnoteWar()
     {
-        $this->casinoWar = true;
+        $this->cnoteWar = true;
     }
 
-    public function getCasinoWar()
+    public function getCnoteWar()
     {
-        return $this->casinoWar;
+        return $this->cnoteWar;
     }
 
     public function continueRound()
@@ -117,13 +117,13 @@ class CasinoWar
 
         foreach ($this->players as $player) {
             if ($player->isPatron()) {
-                $player->appendHandDetail($key = 'turn', $value = 'Deal ' . $player->handSummary() . " Total " . $player->handTotal());
+                $player->appendHandDetail($key = 'turn', $value = 'Deal ' . $player->handSummary() . " Rank " . $player->handTotal());
             }
         }
-        $this->dealer->appendHandDetail($key = 'turn', $value = 'Deal ' .$this->dealer->handSummary() . " Total " . $this->dealer->handTotal());
+        $this->dealer->appendHandDetail($key = 'turn', $value = 'Deal ' .$this->dealer->handSummary() . " Rank " . $this->dealer->handTotal());
 
-        $this->determineOutcome();
-        $this->gotoWar();
+        // $this->determineOutcome();
+        // $this->gotoWar();
     }
 
     public function gotoWar()
@@ -139,13 +139,12 @@ class CasinoWar
                 $this->dealer->drawWarCard($this->deck->dealCard(), $player->seat);
 
                 if ($player->isPatron()) {
-                    $player->appendHandDetail($key = 'turn', $value = 'War ' . $player->warHandSummary() . " Total " . $player->warHandTotal());
-                    $this->dealer->appendHandDetail($key = 'turn', $value = 'War ' . $this->dealer->warHandSummary() . " Total " . $this->dealer->warHandTotal($player->seat));
+                    $player->appendHandDetail($key = 'turn', $value = 'War ' . $player->warHandSummary() . " Rank " . $player->warHandTotal());
+                    $this->dealer->appendHandDetail($key = 'turn', $value = 'War ' . $this->dealer->warHandSummary() . " Rank " . $this->dealer->warHandTotal($player->seat));
                 }
-
-                $this->determineWarOutcome();
             }
         }
+        $this->determineWarOutcome();
     }
 
 
@@ -176,6 +175,7 @@ class CasinoWar
                     $player->handOutcome['playerLoss'] = true;
                     $player->outcome = "Lost, War";
                 } elseif ($player->warHandTotal() == $this->dealer->warHandTotal($player->seat)) {
+                    $player->handOutcome['playerPush'] = true;
                     $player->outcome = "Push";
                 }
             }
@@ -192,17 +192,33 @@ class CasinoWar
 
         foreach ($this->players as $player) {
             if ($player->isPatron()) {
-                $playerAnte = $player->getAnte();
+                $playerWager = $player->getWager();
 
                 if ($player->handOutcome['bonusWin']) {
-                    $player->payout($playerAnte + $playerAnte * $bonusPayout);
+                    $player->payout($playerWager + $playerWager * $bonusPayout);
                 }
                 if ($player->handOutcome['playerWin']) {
-                    $player->payout($playerAnte + ($playerAnte * $payout));
+                    if ($player->cnoteWar) {
+                        $player->payout($playerWager + ($playerWager * 2));
+                        $this->dealer->appendHandDetail($key = 'turn', $value = "War Payout " . $player->getPayout());
+                        $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
+                    } else {
+                        $player->payout($playerWager + ($playerWager * $payout));
+                        $this->dealer->appendHandDetail($key = 'turn', $value = "Payout " . $player->getPayout());
+                        $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
+                    }
                 }
-                // if ($player->handOutcome['playerPush']) {
-                //     $player->payout($playerAnte);
-                // }
+                if ($player->handOutcome['playerPush']) {
+                    $player->payout($playerWager + 100);
+                    $this->dealer->appendHandDetail($key = 'turn', $value = "Push");
+                    $this->dealer->appendHandDetail($key = 'turn', $value = "Push Payout " . $player->getPayout());
+                    $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
+                }
+                if ($player->handOutcome['playerLoss']) {
+                    $this->dealer->appendHandDetail($key = 'turn', $value = "Patron Lost");
+                    $this->dealer->appendHandDetail($key = 'turn', $value = "Collected " . $playerWager);
+                    $player->appendHandDetail($key = 'turn', $value = "Outcome " . $player->outcome);
+                }
             }
         }
     }
@@ -216,7 +232,7 @@ class CasinoWar
         $this->dealer->endRound();
     }
 
-    public function seatThisPlayer(CasinoWarPlayer $player, int $seat=null)
+    public function seatThisPlayer(CnoteWarPlayer $player, int $seat=null)
     {
         unset($this->seatsAvailable[0]);
         $seatsAvailable = array_keys($this->seatsAvailable);
@@ -243,12 +259,5 @@ class CasinoWar
             $this->players[$seat]->button = false;
             $this->players[$seat+1]->button = true;
         }
-    }
-
-    public function debug()
-    {
-        print "<pre>";
-        print_r($this);
-        print "</pre>";
     }
 }

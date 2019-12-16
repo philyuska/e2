@@ -24,9 +24,9 @@ class AppCommand extends Command
         'hand_id' => 'varchar(23)',
         'start_time' => 'datetime',
         'end_time' => 'datetime',
-        'player_id' => 'int',
+        'patron_id' => 'int',
         'seat' => 'int',
-        'ante' => 'int',
+        'wager' => 'int',
         'hand_summary' => 'varchar(255)',
         'outcome' => 'varchar(45)',
         'token_win' => 'int',
@@ -35,7 +35,7 @@ class AppCommand extends Command
 
         $this->app->db()->createTable('game', [
         'hand_id' => 'varchar(23)',
-        'player_id' => 'int',
+        'patron_id' => 'int',
         'turn' => 'varchar(255)',
     ]);
     

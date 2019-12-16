@@ -31,6 +31,21 @@ body
   margin-right: 20px;
 }
 
+#cpeg-resort
+{
+  width: 200px;
+  height: 200px;
+  margin-right: 20px;
+}
+
+#cpeg-oops
+{
+  width: 100px;
+  height: 100px;
+  margin-left: 20px;
+  float: left;
+}
+
 .cpeg-ul
 {
   list-style-type: none;

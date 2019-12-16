@@ -2,11 +2,11 @@
 namespace App\Controllers;
 
 use JsonSerializable;
-use App\GameObjects\CasinoWar;
-use App\GameObjects\Patron;
-use App\GameObjects\CasinoWarPlayer;
+use App\CpegObjects\CnoteWar;
+use App\CpegObjects\Patron;
+use App\CpegObjects\CnoteWarPlayer;
 
-class CasinoWarController extends Controller implements JsonSerializable
+class CnoteWarController extends Controller implements JsonSerializable
 {
     private $game;
     public $patron = null;
@@ -15,7 +15,7 @@ class CasinoWarController extends Controller implements JsonSerializable
     {
         parent::__construct($app);
 
-        $this->game = new CasinoWar($this->loadGameSession());
+        $this->game = new CnoteWar($this->loadGameSession());
         $this->patron = new Patron();
     }
 
@@ -25,7 +25,7 @@ class CasinoWarController extends Controller implements JsonSerializable
 
         if (! $action) {
             $this->demo();
-            return $this->app->view('casinowar.index', ['game' => $this->game, 'scene'=> $action ]);
+            return $this->app->view('cnotewar.index', ['game' => $this->game, 'scene'=> $action ]);
         }
 
         if ($action == 'takeseat') {
@@ -33,25 +33,25 @@ class CasinoWarController extends Controller implements JsonSerializable
         }
 
         if ($action == 'turn') {
-            return $this->app->view('casinowar.index', ['game' => $this->game, 'scene' => $action ]);
+            return $this->app->view('cnotewar.index', ['game' => $this->game, 'scene' => $action ]);
         }
 
         if ($action == 'newhand') {
-            return $this->app->view('casinowar.index', ['game' => $this->game, 'scene' => $action ]);
+            return $this->app->view('cnotewar.index', ['game' => $this->game, 'scene' => $action ]);
         }
 
-        $this->app->redirect('/casinowar');
+        $this->app->redirect('/cnotewar');
     }
 
     public function demo()
     {
         $this->destroyGameSession();
-        $this->game = new CasinoWar();
+        $this->game = new CnoteWar();
         $names = $this->getRandomNames();
 
         for ($x=1; $x<= $this->game->seats; $x++) {
             $playerName = array_shift($names);
-            $players[$x] = new CasinoWarPlayer($playerProps=null, $patron=null, $playerName = $playerName);
+            $players[$x] = new CnoteWarPlayer($playerProps=null, $patron=null, $playerName = $playerName);
             $this->game->seatThisPlayer($players[$x]);
         }
 
@@ -59,16 +59,9 @@ class CasinoWarController extends Controller implements JsonSerializable
 
         $this->game->dealHand();
 
-        if ($this->game->continueRound()) {
-            foreach ($this->game->players as $player) {
-                if ($player->hasButton()) {
-                    while (($player->handTotal() <> $this->game->dealer->handTotal())) {
-                        $player->drawCard($this->game->deck->dealCard());
-                    }
-                    $this->game->passButton($player->seat);
-                }
-            }
-        }
+        $this->game->determineOutcome();
+        
+        $this->game->gotoWar();
     }
 
     public function seatPlayers()
@@ -77,39 +70,43 @@ class CasinoWarController extends Controller implements JsonSerializable
             if ($this->game->getSeatsAvailable()) {
                 $names = $this->getRandomNames();
 
-                $player = new CasinoWarPlayer($playerProps=null, $this->patron, $playerName=null);
+                $player = new CnoteWarPlayer($playerProps=null, $this->patron, $playerName=null);
                 $this->game->seatThisPlayer($player, $seat=1);
 
                 for ($x=1; $x< $this->game->seats; $x++) {
                     $playerName = array_shift($names);
-                    $player = new CasinoWarPlayer($playerProps=null, $patron=null, $playerName = $playerName);
+                    $player = new CnoteWarPlayer($playerProps=null, $patron=null, $playerName = $playerName);
                     $this->game->seatThisPlayer($player);
                 }
             }
 
             $this->saveGameSession();
-            return $this->app->redirect("/casinowar/?action=newhand");
-            return $this->app->view('casinowar.index', ['game' => $this->game, 'scene' => 'newhand' ]);
+            return $this->app->redirect("/cnotewar/newround");
         } else {
-            $data['previousUrl'] = "/casinowar/?action=takeseat";
+            $data['previousUrl'] = "/cnotewar/takeseat";
             $this->app->redirect('/register', $data);
         }
+    }
+
+    public function newRound()
+    {
+        return $this->app->view('cnotewar.newround', ['game' => $this->game ]);
     }
 
     public function leaveTable()
     {
         $this->destroyGameSession();
-        $this->app->redirect('/casinowar');
+        $this->app->redirect('/cnotewar');
     }
 
-    public function ante()
+    public function collectWager()
     {
         $this->app->validate([
-            'ante' => 'required|min:1|max:50',
+            'wager' => 'required|min:1|max:50',
         ]);
 
-        $ante = $this->app->input('ante');
-        $this->game->players[$this->app->input('seat')]->collectAnte($tokens=$ante);
+        $wager = $this->app->input('wager');
+        $this->game->players[$this->app->input('seat')]->collectWager($tokens=$wager);
 
         $this->playRound();
     }
@@ -120,66 +117,15 @@ class CasinoWarController extends Controller implements JsonSerializable
 
         $this->game->dealHand();
 
-        if ($this->game->continueRound()) {
-            foreach ($this->game->players as $player) {
-                if (($player->isPatron()) && $player->hasButton()) {
-                    $this->saveGameSession();
-                    return $this->app->redirect('/casinowar/?action=turn');
-                } elseif ($player->hasButton()) {
-                    $this->playAutoHand($player);
-                }
-            }
-        }
-
+        $this->game->determineOutcome();
+        $this->game->gotoWar();
 
         $this->game->payoutPlayers();
         $this->game->endRound();
         $this->flushHandHistory();
         $this->saveGameSession();
 
-        return $this->app->redirect('/casinowar/?action=newhand');
-    }
-
-    public function continueRound()
-    {
-        foreach ($this->game->players as $player) {
-            if ($player->hasButton()) {
-                $this->playAutoHand($player);
-            }
-        }
-
-        $this->game->payoutPlayers();
-        $this->game->endRound();
-        $this->flushHandHistory();
-        $this->saveGameSession();
-        return($this->app->redirect('/casinowar/?action=newhand'));
-    }
-
-    public function playHand()
-    {
-        $choice = $this->app->input('choice');
-        $seat = $this->app->input('seat');
-
-        $player = $this->game->players[$seat];
-
-        while (($player->handTotal() <> $this->game->dealer->handTotal())) {
-            $player->drawCard($this->game->deck->dealCard());
-            if ($player->isPatron()) {
-                $player->appendHandDetail($key = 'turn', $value = "Draw " . $player->handSummary() . " Total " . $player->handTotal());
-            }
-        }
-        
-        $this->saveGameSession();
-        $this->game->passButton($player->seat);
-        $this->continueRound();
-    }
-
-    private function playAutoHand(CasinoWarPlayer $player)
-    {
-        while (($player->handTotal() <> $this->game->dealer->handTotal())) {
-            $player->drawCard($this->game->deck->dealCard());
-        }
-        $this->game->passButton($player->seat);
+        return $this->app->redirect('/cnotewar/?action=newhand');
     }
 
     private function flushHandHistory()
@@ -187,7 +133,7 @@ class CasinoWarController extends Controller implements JsonSerializable
         foreach ($this->game->dealer->handHistory['turn'] as $turn) {
             $gameRec = array();
             $gameRec['hand_id'] = $this->game->dealer->handHistory['handId'];
-            $gameRec['player_id'] = 0;
+            $gameRec['patron_id'] = 0;
             $gameRec['turn'] = $turn;
 
             $this->app->db()->insert('game', $gameRec);

@@ -1,7 +1,5 @@
 <?php
-namespace App\GameObjects;
-
-use App\GameObjects\Patron;
+namespace App\CpegObjects;
 
 class BlackJackPlayer
 {
@@ -15,7 +13,7 @@ class BlackJackPlayer
     public $seat;
     public $name;
     public $patron;
-    public $ante;
+    public $wager;
     public $payout;
 
 
@@ -31,7 +29,7 @@ class BlackJackPlayer
             $this->handOutcome =  $playerProps['handOutcome'];
             $this->outcome = $playerProps['outcome'];
             $this->name = $playerProps['name'];
-            $this->ante = $playerProps['ante'];
+            $this->wager = $playerProps['wager'];
             $this->payout = $playerProps['payout'];
             $this->patron = ($playerProps['patron'] ? new Patron() : null);
         } else {
@@ -39,7 +37,7 @@ class BlackJackPlayer
             $this->button = false;
             $this->hand = array();
             $this->handHistory = array();
-            $this->ante = 0;
+            $this->wager = 0;
             $this->handTotal = 0;
             $this->blackJack = false;
             $this->handOutcome =  array('bonusWin' => false,'playerWin' => false, 'playerLoss' => false, 'playerPush' => false);
@@ -49,7 +47,6 @@ class BlackJackPlayer
             $this->name = ($patron ? null : $playerName);
         }
     }
-
 
     public function newRound(string $gameId, string $handId)
     {
@@ -116,12 +113,6 @@ class BlackJackPlayer
         $this->handTotal();
     }
 
-    public function getlastCard(string $key='emoji')
-    {
-        $lastCard = end($this->hand);
-        return $lastCard[$key];
-    }
-
     public function handTotal()
     {
         $this->handTotal = 0;
@@ -147,18 +138,18 @@ class BlackJackPlayer
         return $this->handTotal;
     }
 
-    public function collectAnte(int $tokens)
+    public function collectWager(int $tokens)
     {
         if ($this->isPatron()) {
             $this->patron->subTokens($tokens);
-            $this->ante = $tokens;
+            $this->wager = $tokens;
         }
     }
 
-    public function getAnte()
+    public function getWager()
     {
         if ($this->isPatron()) {
-            return $this->ante;
+            return $this->wager;
         }
     }
 
@@ -241,18 +232,18 @@ class BlackJackPlayer
             $gamesRec['hand_id'] = $this->handHistory['handId'];
             $gamesRec['start_time'] = date("Y-m-d h:i:s", $this->handHistory['startTime']);
             $gamesRec['end_time'] = date("Y-m-d h:i:s", $this->handHistory['endTime']);
-            $gamesRec['player_id'] = $this->patron->getId();
+            $gamesRec['patron_id'] = $this->patron->getId();
             $gamesRec['seat'] = $this->seat;
-            $gamesRec['ante'] = $this->ante;
+            $gamesRec['wager'] = $this->wager;
             $gamesRec['hand_summary'] = $this->handSummary() . " Total: " . $this->handTotal();
             $gamesRec['outcome'] = $this->outcome;
             $gamesRec['token_win'] = ($this->payout ? $this->getPayout() : null);
-            $gamesRec['token_loss'] = (! $this->payout ? $this->ante : null);
+            $gamesRec['token_loss'] = (! $this->payout ? $this->wager : null);
 
             foreach ($this->handHistory['turn'] as $hand) {
                 $gameRec = array();
                 $gameRec['hand_id'] = $this->handHistory['handId'];
-                $gameRec['player_id'] = $this->patron->getId();
+                $gameRec['patron_id'] = $this->patron->getId();
                 $gameRec['turn'] = $hand;
 
                 $gameRecs[] = $gameRec;
